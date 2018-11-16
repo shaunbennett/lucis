@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["Shaun Bennett <me@phinary.ca>"]
 
 [dependencies]
+image = "0.20.1"
+png = "0.13.1"
+nalgebra = "0.16.10"

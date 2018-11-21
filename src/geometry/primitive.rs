@@ -1,12 +1,12 @@
-use super::Collision;
 use super::ray::Ray;
-use roots::Roots;
+use super::Collision;
+use nalgebra::dot;
 use roots::find_roots_quadratic;
-use nalgebra::{dot};
+use roots::Roots;
 
 const SPHERE_EPS: f32 = 0.1;
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Primitive {
     Sphere,
     None,
@@ -14,7 +14,6 @@ pub enum Primitive {
 
 impl Primitive {
     pub fn collides(&self, ray: &Ray) -> Option<Collision> {
-
         match self {
             Primitive::Sphere => sphere_collides(ray),
             _ => None,
@@ -33,12 +32,15 @@ fn sphere_collides(ray: &Ray) -> Option<Collision> {
     let closest_root = match find_roots_quadratic(a, b, c) {
         Roots::One([r1]) => r1,
         Roots::Two([r1, r2]) => r1,
-        _ => return None
+        _ => return None,
     };
 
-    if closest_root > SPHERE_EPS { Some(Collision::new(closest_root)) } else { None }
+    if closest_root > SPHERE_EPS {
+        Some(Collision::new(closest_root))
+    } else {
+        None
+    }
 }
-
 
 //   const float eps = 0.1;
 //  glm::vec3 L = ray.eyePoint;

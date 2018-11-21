@@ -6,7 +6,7 @@ pub use self::ray::Ray;
 
 #[derive(Debug, PartialEq, PartialOrd)]
 pub struct Collision {
-    t_value: f32
+    t_value: f32,
 }
 
 impl Collision {

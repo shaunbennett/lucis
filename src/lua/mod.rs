@@ -1,5 +1,7 @@
-use rlua::{Function, Lua, MetaMethod, Result, UserData, UserDataMethods, Variadic, FromLua, Value};
-use super::model::{SceneNode};
+use super::model::SceneNode;
+use rlua::{
+    FromLua, Function, Lua, MetaMethod, Result, UserData, UserDataMethods, Value, Variadic,
+};
 use std::error::Error;
 use std::fs::File;
 use std::io::prelude::*;
@@ -26,9 +28,9 @@ impl UserData for SceneNode {
             node.add_child(child);
             Ok(())
         });
-//        methods.add_method_mut("set_material", |_, mut node, material| {
-//
-//        })
+        //        methods.add_method_mut("set_material", |_, mut node, material| {
+        //
+        //        })
     }
 }
 

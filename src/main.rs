@@ -1,12 +1,11 @@
 extern crate image;
 extern crate lucis;
 
-use lucis::{Point,Vector,Transform,Raytracer,TracingOptions};
-use lucis::geometry::{Primitive};
+use lucis::geometry::Primitive;
 use lucis::geometry::Ray;
-use lucis::model::{Collidable, SceneNode};
 use lucis::lua;
-
+use lucis::model::{Collidable, SceneNode};
+use lucis::{Point, Raytracer, TracingOptions, Transform, Vector};
 
 fn main() {
     let mut child = SceneNode::new(1, "child node".to_string());
@@ -25,8 +24,7 @@ fn main() {
         ambient: Vector::new(0.1, 0.1, 0.1),
     };
     tracer.render(4000, 4000, options);
-//    tracer.render(1024, 1024, options);
-
+    //    tracer.render(1024, 1024, options);
 
     // println!("{:#?}", root);
 }

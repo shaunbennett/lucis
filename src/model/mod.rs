@@ -1,18 +1,18 @@
+use super::geometry::{Collision, Primitive, Ray};
+use super::{Point, Vector};
 use Transform;
-use super::{Vector, Point};
-use super::geometry::{Ray,Collision,Primitive};
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub enum Material {
     PhongMaterial {
         kd: Vector,
         ks: Vector,
-        shininess: Vector
+        shininess: Vector,
     },
-    None
+    None,
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug, Clone)]
 pub struct SceneNode {
     pub id: u32,
     pub children: Vec<SceneNode>,
@@ -43,7 +43,9 @@ impl Collidable for SceneNode {
     fn collides(&self, ray: &Ray) -> Option<Collision> {
         let self_collides = self.primitive.collides(ray);
 
-        let min = self.children.iter()
+        let min = self
+            .children
+            .iter()
             .map(|child| child.collides(ray))
             .filter(|child| child.is_some())
             .map(|child| child.unwrap())
@@ -58,7 +60,6 @@ impl Collidable for SceneNode {
             (None, Some(a)) => Some(a),
             (Some(a), Some(b)) => Some(if a < b { a } else { b }),
         }
-
     }
 }
 

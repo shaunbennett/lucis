@@ -1,8 +1,8 @@
-use nalgebra::{Point3,Vector3,Transform3,norm};
+use image::{Rgb, RgbImage};
+use nalgebra::{norm, Point3, Transform3, Vector3};
 use std::ops::Mul;
-use image::{RgbImage, Rgb};
 
-#[derive(Clone,Copy,Debug,PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
 pub struct Ray {
     // The src position that the ray is coming from
     pub src: Point3<f32>,
@@ -23,6 +23,9 @@ impl Mul<Ray> for Transform3<f32> {
 
 impl Ray {
     pub fn new(a: Point3<f32>, b: Point3<f32>) -> Ray {
-        Ray{ src: a, dir: (b - a).normalize() }
+        Ray {
+            src: a,
+            dir: (b - a).normalize(),
+        }
     }
 }

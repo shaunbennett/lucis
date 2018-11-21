@@ -1,6 +1,6 @@
 use super::ray::Ray;
 use super::Collision;
-use nalgebra::dot;
+use nalgebra::{Vector3, Point3, dot, Unit};
 use roots::find_roots_quadratic;
 use roots::Roots;
 
@@ -23,11 +23,13 @@ impl Primitive {
 
 fn sphere_collides(ray: &Ray) -> Option<Collision> {
     // Check if circle collides with unit sphere
-    let L = &ray.src.coords;
-    let dir = &ray.dir;
+    let center: Point3<f32> = Point3::new(0.0, 0.0, -10.0);
+    let L = ray.src - center;
+    let udir: Unit<Vector3<f32>> = ray.unit_dir();
+    let dir = udir.as_ref();
     let a = dot(dir, dir);
-    let b = 2.0f32 * dot(L, dir);
-    let c = dot(L, L) - 1.0f32;
+    let b = 2.0f32 * dot(&L, dir);
+    let c = dot(&L, &L) - 1.0f32;
 
     let closest_root = match find_roots_quadratic(a, b, c) {
         Roots::One([r1]) => r1,

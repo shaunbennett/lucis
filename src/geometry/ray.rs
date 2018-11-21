@@ -1,5 +1,5 @@
 use image::{Rgb, RgbImage};
-use nalgebra::{norm, Point3, Transform3, Vector3};
+use nalgebra::{Point3, Affine3, Vector3, Unit};
 use std::ops::Mul;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
@@ -10,7 +10,7 @@ pub struct Ray {
     pub dir: Vector3<f32>,
 }
 
-impl Mul<Ray> for Transform3<f32> {
+impl Mul<Ray> for Affine3<f32> {
     type Output = Ray;
 
     fn mul(self, rhs: Ray) -> Ray {
@@ -27,5 +27,9 @@ impl Ray {
             src: a,
             dir: (b - a).normalize(),
         }
+    }
+
+    pub fn unit_dir(&self) -> Unit<Vector3<f32>> {
+        Unit::new_normalize(self.dir)
     }
 }

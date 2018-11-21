@@ -17,13 +17,13 @@ fn main() {
     let options: TracingOptions = Default::default();
     let tracer: Raytracer = Raytracer {
         root_node: root,
-        eye: Point::new(0.0, 0.0, 2.0),
-        view: Vector::new(0.0, 1.0, -1.0),
+        eye: Point::new(0.0, 0.0, 1.0),
+        view: Point::new(0.0, 0.0, 0.0),
         up: Vector::new(0.0, 1.0, 0.0),
-        fov_y: 50.0,
+        fov_y: 30.0,
         ambient: Vector::new(0.1, 0.1, 0.1),
     };
-    tracer.render(4000, 4000, options);
+    tracer.render(256, 256, options);
     //    tracer.render(1024, 1024, options);
 
     // println!("{:#?}", root);

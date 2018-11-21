@@ -1,9 +1,11 @@
 use super::geometry::Ray;
 use image::{Rgb, RgbImage};
 use model::{Collidable, SceneNode};
-use nalgebra::{Point3, Vector3};
+use nalgebra::{Point3, Vector3, Matrix4, Isometry, Affine3};
 use rand::Rng;
 use std::ops::{Add, Mul};
+
+type Isometry3<N> = Isometry<N, nalgebra::U3, nalgebra::Rotation3<f32>>;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Color {
@@ -82,7 +84,7 @@ pub struct Raytracer {
 
     // Viewing
     pub eye: Point3<f32>,
-    pub view: Vector3<f32>,
+    pub view: Point3<f32>,
     pub up: Vector3<f32>,
     pub fov_y: f32,
 
@@ -96,7 +98,7 @@ impl Default for Raytracer {
         Raytracer {
             root_node: root,
             eye: Point3::new(0.0, 0.0, 0.0),
-            view: Vector3::new(0.0, 0.0, 0.0),
+            view: Point3::new(0.0, 0.0, 0.0),
             up: Vector3::new(0.0, 0.0, 0.0),
             fov_y: 30.,
             ambient: Vector3::new(0.0, 0.0, 0.0),
@@ -104,17 +106,21 @@ impl Default for Raytracer {
     }
 }
 
-const Z_NEAR: f32 = 1.0;
+const Z_NEAR: f32 = -1.0;
 
 impl Raytracer {
     // Ray trace and save a specific image
     pub fn render(&self, width: u32, height: u32, options: TracingOptions) {
         let mut img_buffer = RgbImage::new(width, height);
 
+        let view_matrix: Affine3<f32> = nalgebra::convert(Isometry3::look_at_rh(&self.eye, &self.view, &self.up));
+
         //  float side = -2.0f * tan(glm::radians(fovy) / 2.0f);
-        let side = -2.0f32 * self.fov_y.to_radians().tan() / 2.0f32;
+        let side = -2.0f32 * (self.fov_y.to_radians() / 2.0f32).tan();
         let fw = width as f32;
         let fh = height as f32;
+
+        let eye: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
 
         for y in 0..height {
             for x in 0..width {
@@ -125,11 +131,11 @@ impl Raytracer {
                 //  glm::vec3 pixelPoint =
                 //      glm::vec3(zNear * (fx / width - 0.5f) * side * width / height, zNear * -(fy / height - 0.5f) * side, zNear * 1);
                 let pixel_point = Point3::new(
-                    Z_NEAR * (fx / fw - 0.5) * side * fw / fh,
-                    Z_NEAR * -(fy / fh - 0.5) * side,
+                    Z_NEAR * ((fx / fw) - 0.5) * side * fw / fh,
+                    Z_NEAR * -((fy / fh) - 0.5) * side,
                     Z_NEAR,
                 );
-                let ray = Ray::new(self.eye, pixel_point);
+                let ray = Ray::new(eye, pixel_point);
                 let pixel_color = self.trace_ray(width, height, &ray, x, y, fx, fy);
                 img_buffer.put_pixel(x, y, pixel_color.as_rgb());
             }

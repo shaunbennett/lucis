@@ -5,6 +5,7 @@
 - [ ] Scenes can be loaded through lua files
 - [ ] Can specify lua file through command line argument
 - [ ] Can load an obj file into a Mesh structure
+- [ ] Configuration can be loaded through lua
 
 ### Ray Tracing
 - [x] Intersection with SceneNode is working

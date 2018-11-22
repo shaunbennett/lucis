@@ -6,8 +6,7 @@ extern crate rlua;
 extern crate roots;
 
 pub mod geometry;
-pub mod lua;
-pub mod model;
+pub mod scene;
 
 mod raytrace;
 pub use raytrace::{Raytracer, TracingOptions};

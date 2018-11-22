@@ -1,5 +1,4 @@
-use image::{Rgb, RgbImage};
-use nalgebra::{Point3, Affine3, Vector3, Unit, Transform3};
+use nalgebra::{Affine3, Point3, Unit, Vector3};
 use std::ops::Mul;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]

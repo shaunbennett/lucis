@@ -1,13 +1,10 @@
-use super::model::{Material,SceneNode};
-use super::geometry::{Primitive};
-use super::Raytracer;
-use nalgebra::{Vector3,Point3};
-use rlua::{
-    FromLua, Function, Lua, MetaMethod, Result, UserData, UserDataMethods, Value, Variadic, Table
-};
-use std::error::Error;
+use geometry::Primitive;
+use nalgebra::{Point3, Vector3};
+use rlua::{Function, Lua, Result, Table, UserData, UserDataMethods};
+use scene::{Color, Material, SceneNode};
 use std::fs::File;
 use std::io::prelude::*;
+use Raytracer;
 
 fn print_node(lua: &Lua, node: SceneNode) -> Result<()> {
     println!("{:#?}", node);
@@ -37,17 +34,44 @@ fn create_material(_: &Lua, (d, s, p): (Table, Table, f32)) -> Result<Material> 
     let sr: f32 = s.raw_get(1).unwrap();
     let sg: f32 = s.raw_get(2).unwrap();
     let sb: f32 = s.raw_get(3).unwrap();
-    
-    Ok(Material::phong(Vector3::new(dr, dg, db), Vector3::new(sr, sg, sb), p))
+
+    Ok(Material::phong(
+        Color::new(dr, dg, db),
+        Color::new(sr, sg, sb),
+        p,
+    ))
 }
 
-// gr.render( node, filename, w, h, eye, view, up, fov, ambient, lights )
-fn render(_: &Lua, (node, file_name, width, height, eye, view, up, fov): (SceneNode, String, u32, u32, Table, Table, Table, f32)) -> Result<()> {
+fn render(
+    _: &Lua,
+    (node, file_name, width, height, eye, view, up, fov): (
+        SceneNode,
+        String,
+        u32,
+        u32,
+        Table,
+        Table,
+        Table,
+        f32,
+    ),
+) -> Result<()> {
     let raytracer = Raytracer {
         root_node: node,
-        eye: Point3::new(eye.raw_get(1).unwrap(), eye.raw_get(2).unwrap(), eye.raw_get(3).unwrap()),
-        view: Point3::new(view.raw_get(1).unwrap(), view.raw_get(2).unwrap(), view.raw_get(3).unwrap()),
-        up: Vector3::new(up.raw_get(1).unwrap(), up.raw_get(2).unwrap(), up.raw_get(3).unwrap()),
+        eye: Point3::new(
+            eye.raw_get(1).unwrap(),
+            eye.raw_get(2).unwrap(),
+            eye.raw_get(3).unwrap(),
+        ),
+        view: Point3::new(
+            view.raw_get(1).unwrap(),
+            view.raw_get(2).unwrap(),
+            view.raw_get(3).unwrap(),
+        ),
+        up: Vector3::new(
+            up.raw_get(1).unwrap(),
+            up.raw_get(2).unwrap(),
+            up.raw_get(3).unwrap(),
+        ),
         fov_y: fov,
         ambient: Vector3::new(0.8, 0.8, 0.8),
     };
@@ -56,9 +80,7 @@ fn render(_: &Lua, (node, file_name, width, height, eye, view, up, fov): (SceneN
     Ok(())
 }
 
-impl UserData for Material {
-
-}
+impl UserData for Material {}
 
 impl UserData for SceneNode {
     fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
@@ -85,7 +107,7 @@ impl UserData for SceneNode {
     }
 }
 
-pub fn run_script(file_name: &str) {
+pub fn run_lua_script(file_name: &str) {
     let lua = Lua::new();
 
     let core_functions: Vec<(&str, Function)> = vec![

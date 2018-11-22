@@ -1,29 +1,31 @@
-use super::geometry::{Collision, Primitive, Ray};
-use super::{Point, Vector};
-use nalgebra::{Projective3, Matrix4, Affine3};
-use Transform;
+use geometry::{Primitive, Ray};
+use nalgebra::{Affine3, Matrix4, Vector3};
+use scene::{Color, Intersection};
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Material {
     PhongMaterial {
-        kd: Vector,
-        ks: Vector,
+        kd: Color,
+        ks: Color,
         shininess: f32,
     },
     None,
 }
 
 impl Material {
-    pub fn phong(kd: Vector, ks: Vector, shininess: f32) -> Material {
-        Material::PhongMaterial {
-            kd,
-            ks,
-            shininess
+    pub fn phong(kd: Color, ks: Color, shininess: f32) -> Material {
+        Material::PhongMaterial { kd, ks, shininess }
+    }
+
+    pub fn get_color(&self, intersect: &Intersection) -> Color {
+        match self {
+            Material::PhongMaterial { kd, ks, shininess } => *kd,
+            Material::None => Color::new(0.0, 0.0, 0.0),
         }
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SceneNode {
     pub id: u32,
     pub children: Vec<SceneNode>,
@@ -50,15 +52,21 @@ impl SceneNode {
     }
 }
 
-impl Collidable for SceneNode {
-    fn collides(&self, ray: &Ray) -> Option<Collision> {
+impl Intersect for SceneNode {
+    fn intersects(&self, ray: &Ray) -> Option<Intersection> {
         let transformed_ray = self.inv_transform * *ray;
-        let self_collides = self.primitive.collides(&transformed_ray);
+
+        let mut t_value: f32 = 0.0;
+        let self_collides = if self.primitive.collides(&transformed_ray, &mut t_value) {
+            Some(Intersection::new(t_value, &self))
+        } else {
+            None
+        };
 
         let min = self
             .children
             .iter()
-            .map(|child| child.collides(&transformed_ray))
+            .map(|child| child.intersects(&transformed_ray))
             .filter(|child| child.is_some())
             .map(|child| child.unwrap())
             .fold(None, |min, child| match min {
@@ -81,19 +89,28 @@ impl SceneNode {
     }
     pub fn scale(&mut self, x: f32, y: f32, z: f32) {
         println!("Applying scaling to {} of ({}, {}, {})", self.name, x, y, z);
-        self.apply_transform(Matrix4::new_nonuniform_scaling(&Vector::new(x, y, z)));
+        self.apply_transform(Matrix4::new_nonuniform_scaling(&Vector3::new(x, y, z)));
     }
     pub fn translate(&mut self, x: f32, y: f32, z: f32) {
-        println!("Applying translation to {} of ({}, {}, {})", self.name, x, y, z);
-        self.apply_transform(Matrix4::new_translation(&Vector::new(x, y, z)));
+        println!(
+            "Applying translation to {} of ({}, {}, {})",
+            self.name, x, y, z
+        );
+        self.apply_transform(Matrix4::new_translation(&Vector3::new(x, y, z)));
     }
     pub fn rotate(&mut self, axis: &str, angle: f32) {
-        println!("Applying rotation to {} of ({}, {})", self.name, axis, angle);
+        println!(
+            "Applying rotation to {} of ({}, {})",
+            self.name, axis, angle
+        );
         let axis = match axis {
-            "x" => Vector::x_axis(),
-            "y" => Vector::y_axis(),
-            "z" => Vector::z_axis(),
-            _ => panic!("Got unexpected axis: \'{}\' while trying to apply rotation to node \'{}\'", axis, self.name),
+            "x" => Vector3::x_axis(),
+            "y" => Vector3::y_axis(),
+            "z" => Vector3::z_axis(),
+            _ => panic!(
+                "Got unexpected axis: \'{}\' while trying to apply rotation to node \'{}\'",
+                axis, self.name
+            ),
         };
         self.apply_transform(Matrix4::from_axis_angle(&axis, angle.to_radians()));
     }
@@ -104,6 +121,6 @@ impl SceneNode {
     }
 }
 
-pub trait Collidable {
-    fn collides(&self, ray: &Ray) -> Option<Collision>;
+pub trait Intersect {
+    fn intersects(&self, ray: &Ray) -> Option<Intersection>;
 }

@@ -85,36 +85,29 @@ impl UserData for SceneNode {
     }
 }
 
-//impl<'lua> FromLua<'lua> for SceneNode {
-//    fn from_lua(lua_value: Value, lua: &'lua Lua) -> Result<Self> {
-//        let node_count: u32 = lua.globals().get("node_count")?;
-//        lua.globals().set("node_count", node_count + 1);
-//        Ok(Self::new(node_count, "node".to_string()))
-//    }
-//}
-
-pub fn test() {
+pub fn run_script(file_name: &str) {
     let lua = Lua::new();
 
+    let core_functions: Vec<(&str, Function)> = vec![
+        // Create a node
+        ("node", lua.create_function(create_node).unwrap()),
+        // Create a sphere node
+        ("sphere", lua.create_function(create_sphere).unwrap()),
+        // Create a new material
+        ("material", lua.create_function(create_material).unwrap()),
+        // Print the details of a node
+        ("print", lua.create_function(print_node).unwrap()),
+        // Render a scene
+        ("render", lua.create_function(render).unwrap()),
+    ];
+
+    let f_table = lua.create_table_from(core_functions).unwrap();
+
     let globals = lua.globals();
+    // Track node count as we create new nodes
     globals.set("node_count", 0u32).unwrap();
+    globals.set("rt", f_table).unwrap();
 
-    let cnf = lua.create_function(create_node).unwrap();
-    globals.set("node", cnf).unwrap();
-
-    let csf = lua.create_function(create_sphere).unwrap();
-    globals.set("sphere", csf).unwrap();
-
-    let cmf = lua.create_function(create_material).unwrap();
-    globals.set("material", cmf).unwrap();
-
-    let pnf = lua.create_function(print_node).unwrap();
-    globals.set("print_node", pnf).unwrap();
-
-    let rf = lua.create_function(render).unwrap();
-    globals.set("render", rf).unwrap();
-
-    let file_name = "test.lua";
     let mut file = File::open(file_name).expect("File not found");
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();

@@ -3,7 +3,7 @@ use super::{Point, Vector};
 use nalgebra::{Projective3, Matrix4, Affine3};
 use Transform;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Material {
     PhongMaterial {
         kd: Vector,

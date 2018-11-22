@@ -6,6 +6,7 @@
 - [ ] Can specify lua file through command line argument
 - [ ] Can load an obj file into a Mesh structure
 - [ ] Configuration can be loaded through lua
+- [ ] Errors (i.e. lua issues) are passed up through Result and handled
 
 ### Ray Tracing
 - [x] Intersection with SceneNode is working

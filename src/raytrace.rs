@@ -161,7 +161,7 @@ impl Raytracer {
     ) -> Color {
         let collision = self.root_node.collides(ray);
         match collision {
-            Some(collision) => Color::new(1.0, 1.0, 1.0),
+            Some(collision) => Color::new(fx / (width as f32), fy / (height as f32), 1.0),
             None => get_background_color(x, y, width, height),
         }
     }

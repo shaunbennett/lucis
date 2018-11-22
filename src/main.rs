@@ -14,7 +14,7 @@ fn main() {
     // child.primitive = Primitive::Sphere;
     // root.add_child(child);
 
-    lua::test();
+    lua::run_script("test.lua");
 
     // let options: TracingOptions = Default::default();
     // let tracer: Raytracer = Raytracer {

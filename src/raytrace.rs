@@ -98,7 +98,7 @@ impl Default for Raytracer {
         Raytracer {
             root_node: root,
             eye: Point3::new(0.0, 0.0, 0.0),
-            view: Point3::new(0.0, 0.0, 0.0),
+            view: Point3::new(0.0, 0.0, -1.0),
             up: Vector3::new(0.0, 0.0, 0.0),
             fov_y: 30.,
             ambient: Vector3::new(0.0, 0.0, 0.0),
@@ -110,7 +110,12 @@ const Z_NEAR: f32 = -1.0;
 
 impl Raytracer {
     // Ray trace and save a specific image
-    pub fn render(&self, width: u32, height: u32, options: TracingOptions) {
+    pub fn render(&self, file_name: &str, width: u32, height: u32, options: TracingOptions) {
+        println!("Rendering!", );
+        println!("Eye: {}", self.eye);
+        println!("View: {}", self.view);
+        println!("Up: {}", self.up);
+
         let mut img_buffer = RgbImage::new(width, height);
 
         let view_matrix: Affine3<f32> = nalgebra::convert(Isometry3::look_at_rh(&self.eye, &self.view, &self.up));
@@ -120,7 +125,7 @@ impl Raytracer {
         let fw = width as f32;
         let fh = height as f32;
 
-        let eye: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
+        // let eye: Point3<f32> = Point3::new(0.0, 0.0, 0.0);
 
         for y in 0..height {
             for x in 0..width {
@@ -130,18 +135,18 @@ impl Raytracer {
                 //  float zNear = 1;
                 //  glm::vec3 pixelPoint =
                 //      glm::vec3(zNear * (fx / width - 0.5f) * side * width / height, zNear * -(fy / height - 0.5f) * side, zNear * 1);
-                let pixel_point = Point3::new(
+                let pixel_vec = view_matrix * Vector3::new(
                     Z_NEAR * ((fx / fw) - 0.5) * side * fw / fh,
                     Z_NEAR * -((fy / fh) - 0.5) * side,
                     Z_NEAR,
                 );
-                let ray = Ray::new(eye, pixel_point);
+                let ray = Ray::new(self.eye, pixel_vec);
                 let pixel_color = self.trace_ray(width, height, &ray, x, y, fx, fy);
                 img_buffer.put_pixel(x, y, pixel_color.as_rgb());
             }
         }
 
-        img_buffer.save("test.png").unwrap();
+        img_buffer.save(file_name).unwrap();
     }
 
     fn trace_ray(

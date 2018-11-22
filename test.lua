@@ -1,10 +1,13 @@
-test_function("Hello there!")
+root_node = node("root")
 
-node1 = create_node("node1")
-node2 = create_node("node2")
-node3 = create_node("node3")
 
-node2:add_child(node3)
-node1:add_child(node2)
+-- Create a sphere
+sphere_node = sphere("sphere")
+sphere_node:scale(2, 2, 2)
+sphere_node:translate(0, 0, -20)
 
-print_node(node1)
+root_node:add_child(sphere_node)
+
+print_node(root_node)
+
+render(root_node, "test_image.png", 512, 512, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, 30)

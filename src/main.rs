@@ -8,22 +8,24 @@ use lucis::model::{Collidable, SceneNode};
 use lucis::{Point, Raytracer, TracingOptions, Transform, Vector};
 
 fn main() {
-    let mut child = SceneNode::new(1, "child node".to_string());
-    let mut root = SceneNode::new(0, "root node".to_string());
+    // let mut child = SceneNode::new(1, "child node".to_string());
+    // let mut root = SceneNode::new(0, "root node".to_string());
 
-    child.primitive = Primitive::Sphere;
-    root.add_child(child);
+    // child.primitive = Primitive::Sphere;
+    // root.add_child(child);
 
-    let options: TracingOptions = Default::default();
-    let tracer: Raytracer = Raytracer {
-        root_node: root,
-        eye: Point::new(0.0, 0.0, 1.0),
-        view: Point::new(0.0, 0.0, 0.0),
-        up: Vector::new(0.0, 1.0, 0.0),
-        fov_y: 30.0,
-        ambient: Vector::new(0.1, 0.1, 0.1),
-    };
-    tracer.render(256, 256, options);
+    lua::test();
+
+    // let options: TracingOptions = Default::default();
+    // let tracer: Raytracer = Raytracer {
+    //     root_node: root,
+    //     eye: Point::new(0.0, 0.0, 5.0),
+    //     view: Point::new(0.0, 0.0, 0.0),
+    //     up: Vector::new(0.0, 1.0, 0.0),
+    //     fov_y: 30.0,
+    //     ambient: Vector::new(0.1, 0.1, 0.1),
+    // };
+    // tracer.render(256, 256, options);
     //    tracer.render(1024, 1024, options);
 
     // println!("{:#?}", root);

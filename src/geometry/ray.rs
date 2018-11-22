@@ -1,5 +1,5 @@
 use image::{Rgb, RgbImage};
-use nalgebra::{Point3, Affine3, Vector3, Unit};
+use nalgebra::{Point3, Affine3, Vector3, Unit, Transform3};
 use std::ops::Mul;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd)]
@@ -22,10 +22,10 @@ impl Mul<Ray> for Affine3<f32> {
 }
 
 impl Ray {
-    pub fn new(a: Point3<f32>, b: Point3<f32>) -> Ray {
+    pub fn new(src: Point3<f32>, dir: Vector3<f32>) -> Ray {
         Ray {
-            src: a,
-            dir: (b - a).normalize(),
+            src: src,
+            dir: dir.normalize(),
         }
     }
 

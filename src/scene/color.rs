@@ -46,9 +46,9 @@ impl Color {
     }
 
     fn clamp(mut self) -> Color {
-        self.r = self.r.min(0.0).max(0.0);
-        self.g = self.g.min(0.0).max(0.0);
-        self.b = self.b.min(0.0).max(0.0);
+        self.r = self.r.max(0.0).min(1.0);
+        self.g = self.g.max(0.0).min(1.0);
+        self.b = self.b.max(0.0).min(1.0);
         self
     }
 }

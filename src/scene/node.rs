@@ -1,6 +1,7 @@
 use geometry::{Primitive, Ray};
 use nalgebra::{Affine3, Matrix4, Vector3};
 use scene::{Color, Intersection};
+use Raytracer;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Material {
@@ -12,14 +13,71 @@ pub enum Material {
     None,
 }
 
+// glm::vec3 calculatePhongIllumination(const SceneNode &root, const glm::vec3 &eye, const Collision &collision, const glm::vec3 &ambient, const std::list<Light *> &lights) {
+// 	PhongMaterial *mat = static_cast<PhongMaterial*>(collision.geometryNode->m_material);
+
+// 	glm::vec3 nVec = glm::normalize(collision.normal);
+// 	glm::vec3 vVec = glm::normalize(eye - collision.collisionPoint);
+// 	// Db("---");
+// 	// Db("n: " << glm::to_string(nVec));
+// 	// Db("v: " << glm::to_string(vVec));
+
+// 	glm::vec3 diffuseColor;
+// 	if (collision.textureColor != glm::vec3(-1)) {
+// 		// Db("Custom color: " << glm::to_string(collision.textureColor));
+// 		diffuseColor = collision.textureColor;
+// 	} else {
+// 		diffuseColor = mat->m_kd;
+// 	}
+// 	glm::vec3 finalColor = diffuseColor * ambient;
+
+// 	for (Light *light : lights) {
+
+// 		// first we should check if the path from collision point to light is open
+// 		Ray shadowRay{collision.collisionPoint, light->position};
+// 		std::list<Collision> collisions;
+// 		if (root.collides(shadowRay, collisions)) continue;
+
+// 		glm::vec3 lVec = light->position - collision.collisionPoint;
+// 		float lLength = glm::length(lVec);
+// 		lVec = glm::normalize(lVec);
+
+// 		// Db("l: " << glm::to_string(lVec));
+// 		float ldotn = glm::clamp(glm::dot(lVec, nVec), 0.0f, 1.0f);
+// 		glm::vec3 rVec = glm::normalize((2 * ldotn * nVec) - lVec);
+// 		float rdotv = glm::clamp(glm::dot(rVec, vVec), 0.0f, 1.0f);
+// 		float attenuation = light->falloff[0] + (light->falloff[1] * lLength) + (light->falloff[2] * lLength * lLength);
+// 		glm::vec3 lightSum = (diffuseColor * ldotn * light->colour) + (mat->m_ks * glm::pow(rdotv, mat->m_shininess) * light->colour);
+// 		lightSum = lightSum / attenuation;
+// 		finalColor += lightSum;
+// 	}
+
+// 	// Db("---");
+// 	// Db(glm::to_string(finalColor));
+
+// 	return finalColor;	
+// }
+
+fn calculate_phong_lighting(kd: &Color, ks: &Color, shininess: &f32, ray: &Ray, raytracer: &Raytracer, intersect: &Intersection) -> Color {
+    let intersect_point = ray.src + (intersect.t_value * ray.dir);
+    let n = intersect.normal.normalize();
+    let v = (raytracer.eye - intersect_point).normalize();
+
+    println!("kd: {:?}", kd);
+    let mut final_color = *kd * raytracer.ambient;
+    println!("final color: {:?}", final_color);
+
+    return final_color;
+}
+
 impl Material {
     pub fn phong(kd: Color, ks: Color, shininess: f32) -> Material {
         Material::PhongMaterial { kd, ks, shininess }
     }
 
-    pub fn get_color(&self, intersect: &Intersection) -> Color {
+    pub fn get_color(&self, ray: &Ray, raytracer: &Raytracer, intersect: &Intersection) -> Color {
         match self {
-            Material::PhongMaterial { kd, ks, shininess } => *kd,
+            Material::PhongMaterial { kd, ks, shininess } => calculate_phong_lighting(kd, ks, shininess, ray, raytracer, intersect),
             Material::None => Color::new(0.0, 0.0, 0.0),
         }
     }
@@ -57,8 +115,9 @@ impl Intersect for SceneNode {
         let transformed_ray = self.inv_transform * *ray;
 
         let mut t_value: f32 = 0.0;
-        let self_collides = if self.primitive.collides(&transformed_ray, &mut t_value) {
-            Some(Intersection::new(t_value, &self))
+        let mut normal = Vector3::new(0.0f32, 0.0, 0.0);
+        let self_collides = if self.primitive.collides(&transformed_ray, &mut t_value, &mut normal) {
+            Some(Intersection::new(t_value, &self, normal))
         } else {
             None
         };

@@ -12,15 +12,15 @@ pub enum Primitive {
 }
 
 impl Primitive {
-    pub fn collides(&self, ray: &Ray, t_value: &mut f32) -> bool {
+    pub fn collides(&self, ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
         match self {
-            Primitive::Sphere => sphere_collides(ray, t_value),
+            Primitive::Sphere => sphere_collides(ray, t_value, normal),
             _ => false,
         }
     }
 }
 
-fn sphere_collides(ray: &Ray, t_value: &mut f32) -> bool {
+fn sphere_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
     // Check if circle collides with unit sphere
     let L = &ray.src.coords;
     let udir: Unit<Vector3<f32>> = ray.unit_dir();
@@ -37,6 +37,7 @@ fn sphere_collides(ray: &Ray, t_value: &mut f32) -> bool {
 
     if closest_root > SPHERE_EPS {
         *t_value = closest_root;
+        *normal = (ray.src + (closest_root * ray.dir)).coords;
         true
     } else {
         false

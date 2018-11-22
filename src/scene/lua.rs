@@ -73,7 +73,7 @@ fn render(
             up.raw_get(3).unwrap(),
         ),
         fov_y: fov,
-        ambient: Vector3::new(0.8, 0.8, 0.8),
+        ambient: Color::new(0.8, 0.8, 0.8),
     };
     raytracer.render(file_name.as_ref(), width, height, Default::default());
     println!("Rendering complete!");

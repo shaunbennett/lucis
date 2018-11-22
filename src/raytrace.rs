@@ -36,7 +36,7 @@ pub struct Raytracer {
     pub fov_y: f32,
 
     // Lighting
-    pub ambient: Vector3<f32>,
+    pub ambient: Color,
 }
 
 impl Default for Raytracer {
@@ -48,7 +48,7 @@ impl Default for Raytracer {
             view: Point3::new(0.0, 0.0, -1.0),
             up: Vector3::new(0.0, 0.0, 0.0),
             fov_y: 30.,
-            ambient: Vector3::new(0.0, 0.0, 0.0),
+            ambient: Color::new(0.0, 0.0, 0.0),
         }
     }
 }
@@ -94,7 +94,7 @@ impl Raytracer {
     fn trace_ray(&self, width: u32, height: u32, ray: &Ray, x: u32, y: u32) -> Color {
         let collision = self.root_node.intersects(ray);
         match collision {
-            Some(c) => c.node.material.get_color(&c),
+            Some(c) => c.node.material.get_color(ray, self, &c),
             None => get_background_color(x, y, width, height),
         }
     }

@@ -1,6 +1,6 @@
 use geometry::{Primitive, Ray};
-use nalgebra::{Affine3, Matrix4, Vector3};
-use scene::{Color, Intersection};
+use nalgebra::{clamp, distance_squared, Affine3, Matrix3, Matrix4, Vector3, U3};
+use scene::{Color, Intersection, Light};
 use Raytracer;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -55,17 +55,40 @@ pub enum Material {
 // 	// Db("---");
 // 	// Db(glm::to_string(finalColor));
 
-// 	return finalColor;	
+// 	return finalColor;
 // }
 
-fn calculate_phong_lighting(kd: &Color, ks: &Color, shininess: &f32, ray: &Ray, raytracer: &Raytracer, intersect: &Intersection) -> Color {
-    let intersect_point = ray.src + (intersect.t_value * ray.dir);
+fn calculate_phong_lighting(
+    kd: &Color,
+    ks: &Color,
+    shininess: &f32,
+    ray: &Ray,
+    raytracer: &Raytracer,
+    intersect: &Intersection,
+) -> Color {
+    let intersect_point = intersect.point;
     let n = intersect.normal.normalize();
     let v = (raytracer.eye - intersect_point).normalize();
 
-    println!("kd: {:?}", kd);
     let mut final_color = *kd * raytracer.ambient;
-    println!("final color: {:?}", final_color);
+
+    for light in raytracer.lights.iter() {
+        let shadow_ray = Ray::new_from_points(intersect_point, light.position);
+        if raytracer.root_node.intersects(&shadow_ray).is_some() {
+            continue;
+        }
+        let mut L = light.position - intersect_point;
+        let L_norm = L.norm();
+        L = L.normalize();
+
+        let Ldotn = clamp(L.dot(&n), 0.0f32, 1.0f32);
+        let r = ((2.0f32 * Ldotn * n) - L).normalize();
+        let rdotv = clamp(r.dot(&v), 0.0f32, 1.0f32);
+        let attenuation =
+            light.falloff[0] + (light.falloff[1] * L_norm) + (light.falloff[2] * L_norm * L_norm);
+        let light_sum = (kd * Ldotn * light.color) + (ks * rdotv.powf(*shininess) * light.color);
+        final_color = final_color + (light_sum / attenuation);
+    }
 
     return final_color;
 }
@@ -77,7 +100,9 @@ impl Material {
 
     pub fn get_color(&self, ray: &Ray, raytracer: &Raytracer, intersect: &Intersection) -> Color {
         match self {
-            Material::PhongMaterial { kd, ks, shininess } => calculate_phong_lighting(kd, ks, shininess, ray, raytracer, intersect),
+            Material::PhongMaterial { kd, ks, shininess } => {
+                calculate_phong_lighting(kd, ks, shininess, ray, raytracer, intersect)
+            }
             Material::None => Color::new(0.0, 0.0, 0.0),
         }
     }
@@ -116,8 +141,16 @@ impl Intersect for SceneNode {
 
         let mut t_value: f32 = 0.0;
         let mut normal = Vector3::new(0.0f32, 0.0, 0.0);
-        let self_collides = if self.primitive.collides(&transformed_ray, &mut t_value, &mut normal) {
-            Some(Intersection::new(t_value, &self, normal))
+        let self_collides = if self
+            .primitive
+            .collides(&transformed_ray, &mut t_value, &mut normal)
+        {
+            Some(Intersection::new(
+                t_value,
+                transformed_ray.src + (t_value * transformed_ray.dir.normalize()),
+                &self,
+                normal,
+            ))
         } else {
             None
         };
@@ -130,14 +163,28 @@ impl Intersect for SceneNode {
             .map(|child| child.unwrap())
             .fold(None, |min, child| match min {
                 None => Some(child),
-                Some(cmin) => Some(if cmin < child { cmin } else { child }),
+                Some(cmin) => Some(if distance_squared(&cmin.point, &transformed_ray.src)
+                    < distance_squared(&child.point, &transformed_ray.src)
+                {
+                    cmin
+                } else {
+                    child
+                }),
             });
 
         match (self_collides, min) {
             (None, None) => None,
-            (Some(a), None) => Some(a),
-            (None, Some(a)) => Some(a),
-            (Some(a), Some(b)) => Some(if a < b { a } else { b }),
+            (Some(a), None) => Some(a.apply_transform(&self.transform, &self.inv_transform)),
+            (None, Some(a)) => Some(a.apply_transform(&self.transform, &self.inv_transform)),
+            (Some(a), Some(b)) => Some(
+                (if distance_squared(&a.point, &transformed_ray.src)
+                    < distance_squared(&b.point, &transformed_ray.src)
+                {
+                    a
+                } else {
+                    b
+                }).apply_transform(&self.transform, &self.inv_transform),
+            ),
         }
     }
 }

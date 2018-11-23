@@ -1,5 +1,6 @@
 use image::Rgb;
-use std::ops::{Add, Mul};
+use nalgebra::Vector3;
+use std::ops::{Add, Div, Mul};
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct Color {
@@ -28,6 +29,42 @@ impl Mul for Color {
             r: self.r * rhs.r,
             g: self.g * rhs.g,
             b: self.b * rhs.b,
+        }.clamp()
+    }
+}
+
+impl<'a, 'b> Mul<&'b Vector3<f32>> for &'a Color {
+    type Output = Color;
+
+    fn mul(self, rhs: &'b Vector3<f32>) -> Color {
+        Color {
+            r: self.r * rhs.x,
+            g: self.g * rhs.y,
+            b: self.b * rhs.z,
+        }.clamp()
+    }
+}
+
+impl<'a> Mul<f32> for &'a Color {
+    type Output = Color;
+
+    fn mul(self, rhs: f32) -> Color {
+        Color {
+            r: self.r * rhs,
+            g: self.g * rhs,
+            b: self.b * rhs,
+        }.clamp()
+    }
+}
+
+impl Div<f32> for Color {
+    type Output = Color;
+
+    fn div(self, rhs: f32) -> Color {
+        Color {
+            r: self.r / rhs,
+            g: self.g / rhs,
+            b: self.b / rhs,
         }.clamp()
     }
 }

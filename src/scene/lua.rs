@@ -1,12 +1,12 @@
 use geometry::Primitive;
 use nalgebra::{Point3, Vector3};
 use rlua::{Function, Lua, Result, Table, UserData, UserDataMethods};
-use scene::{Color, Material, SceneNode};
+use scene::{Color, Light, Material, SceneNode};
 use std::fs::File;
 use std::io::prelude::*;
 use Raytracer;
 
-fn print_node(lua: &Lua, node: SceneNode) -> Result<()> {
+fn print_node(_: &Lua, node: SceneNode) -> Result<()> {
     println!("{:#?}", node);
     Ok(())
 }
@@ -42,9 +42,26 @@ fn create_material(_: &Lua, (d, s, p): (Table, Table, f32)) -> Result<Material> 
     ))
 }
 
+fn create_light(_: &Lua, (p, c, a): (Table, Table, Table)) -> Result<Light> {
+    let px: f32 = p.raw_get(1).unwrap();
+    let py: f32 = p.raw_get(2).unwrap();
+    let pz: f32 = p.raw_get(3).unwrap();
+    let cr: f32 = c.raw_get(1).unwrap();
+    let cg: f32 = c.raw_get(2).unwrap();
+    let cb: f32 = c.raw_get(3).unwrap();
+    let a1: f32 = a.raw_get(1).unwrap();
+    let a2: f32 = a.raw_get(2).unwrap();
+    let a3: f32 = a.raw_get(3).unwrap();
+    Ok(Light::new(
+        Color::new(cr, cg, cb),
+        Point3::new(px, py, pz),
+        [a1, a2, a3],
+    ))
+}
+
 fn render(
     _: &Lua,
-    (node, file_name, width, height, eye, view, up, fov): (
+    (node, file_name, width, height, eye, view, up, fov, lights): (
         SceneNode,
         String,
         u32,
@@ -53,8 +70,13 @@ fn render(
         Table,
         Table,
         f32,
+        Table,
     ),
 ) -> Result<()> {
+    let mut lights_vec: Vec<Light> = Vec::new();
+    for i in 1..=lights.raw_len() {
+        lights_vec.push(lights.raw_get(i).unwrap());
+    }
     let raytracer = Raytracer {
         root_node: node,
         eye: Point3::new(
@@ -73,7 +95,8 @@ fn render(
             up.raw_get(3).unwrap(),
         ),
         fov_y: fov,
-        ambient: Color::new(0.8, 0.8, 0.8),
+        ambient: Color::new(0.2, 0.2, 0.2),
+        lights: lights_vec,
     };
     raytracer.render(file_name.as_ref(), width, height, Default::default());
     println!("Rendering complete!");
@@ -81,6 +104,8 @@ fn render(
 }
 
 impl UserData for Material {}
+
+impl UserData for Light {}
 
 impl UserData for SceneNode {
     fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
@@ -117,6 +142,8 @@ pub fn run_lua_script(file_name: &str) {
         ("sphere", lua.create_function(create_sphere).unwrap()),
         // Create a new material
         ("material", lua.create_function(create_material).unwrap()),
+        // Create a new light
+        ("light", lua.create_function(create_light).unwrap()),
         // Print the details of a node
         ("print", lua.create_function(print_node).unwrap()),
         // Render a scene

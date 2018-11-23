@@ -15,7 +15,7 @@ impl Mul<Ray> for Affine3<f32> {
     fn mul(self, rhs: Ray) -> Ray {
         Ray {
             src: self * rhs.src,
-            dir: self * rhs.dir,
+            dir: (self * rhs.dir).normalize(),
         }
     }
 }
@@ -26,6 +26,10 @@ impl Ray {
             src: src,
             dir: dir.normalize(),
         }
+    }
+
+    pub fn new_from_points(p1: Point3<f32>, p2: Point3<f32>) -> Ray {
+        Ray::new(p1, (p2 - p1).normalize())
     }
 
     pub fn unit_dir(&self) -> Unit<Vector3<f32>> {

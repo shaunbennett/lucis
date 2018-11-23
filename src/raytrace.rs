@@ -2,7 +2,7 @@ use super::geometry::Ray;
 use image::RgbImage;
 use nalgebra::{Affine3, Isometry, Point3, Vector3};
 use rand::Rng;
-use scene::{Color, Intersect, SceneNode};
+use scene::{Color, Intersect, Light, SceneNode};
 
 type Isometry3<N> = Isometry<N, nalgebra::U3, nalgebra::Rotation3<f32>>;
 
@@ -37,6 +37,7 @@ pub struct Raytracer {
 
     // Lighting
     pub ambient: Color,
+    pub lights: Vec<Light>,
 }
 
 impl Default for Raytracer {
@@ -49,6 +50,7 @@ impl Default for Raytracer {
             up: Vector3::new(0.0, 0.0, 0.0),
             fov_y: 30.,
             ambient: Color::new(0.0, 0.0, 0.0),
+            lights: Vec::new(),
         }
     }
 }

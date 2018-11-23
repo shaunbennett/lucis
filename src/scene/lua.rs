@@ -27,6 +27,15 @@ fn create_sphere(lua: &Lua, name: String) -> Result<SceneNode> {
     Ok(node)
 }
 
+fn create_cube(lua: &Lua, name: String) -> Result<SceneNode> {
+    let node_count: u32 = lua.globals().get("node_count")?;
+    lua.globals().set("node_count", node_count + 1).unwrap();
+    println!("Creating new cube \'{}\'", name);
+    let mut node = SceneNode::new(node_count, name);
+    node.primitive = Primitive::Cube;
+    Ok(node)
+}
+
 fn create_material(_: &Lua, (d, s, p): (Table, Table, f32)) -> Result<Material> {
     let dr: f32 = d.raw_get(1).unwrap();
     let dg: f32 = d.raw_get(2).unwrap();
@@ -140,6 +149,8 @@ pub fn run_lua_script(file_name: &str) {
         ("node", lua.create_function(create_node).unwrap()),
         // Create a sphere node
         ("sphere", lua.create_function(create_sphere).unwrap()),
+        // Create a cube node
+        ("cube", lua.create_function(create_cube).unwrap()),
         // Create a new material
         ("material", lua.create_function(create_material).unwrap()),
         // Create a new light

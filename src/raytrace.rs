@@ -1,8 +1,10 @@
 use super::geometry::Ray;
-use image::RgbImage;
+use image::{Rgb, RgbImage};
 use nalgebra::{Affine3, Isometry, Point3, Vector3};
 use rand::Rng;
 use scene::{Color, Intersect, Light, SceneNode};
+use rayon::range::Iter;
+use rayon::prelude::*;
 
 type Isometry3<N> = Isometry<N, nalgebra::U3, nalgebra::Rotation3<f32>>;
 
@@ -74,23 +76,47 @@ impl Raytracer {
         let fw = width as f32;
         let fh = height as f32;
 
-        for y in 0..height {
-            for x in 0..width {
+        let pixel_count = width * height;
+
+        let image_pixels: Vec<Rgb<u8>> = (0..pixel_count).into_par_iter()
+            .map(|i| {
+                let x = i % height;
+                let y = i / width;
                 let fx = x as f32 + 0.5;
                 let fy = y as f32 + 0.5;
-
                 let pixel_vec = view_matrix * Vector3::new(
                     Z_NEAR * ((fx / fw) - 0.5) * side * fw / fh,
                     Z_NEAR * -((fy / fh) - 0.5) * side,
                     Z_NEAR,
                 );
                 let ray = Ray::new(self.eye, pixel_vec);
-                let pixel_color = self.trace_ray(width, height, &ray, x, y);
-                img_buffer.put_pixel(x, y, pixel_color.as_rgb());
-            }
-        }
+                self.trace_ray(width, height, &ray, x, y).as_rgb()
+            }).collect();
 
-        img_buffer.save(file_name).unwrap();
+        // ENTERING SCARY ZONE, DON'T ASK QUESTIONS
+        let transmuted_pixels: Vec<u8> = unsafe {
+            std::slice::from_raw_parts(image_pixels.as_ptr() as *mut u8, (pixel_count * 3) as usize).to_vec()
+        };
+        let buffer = RgbImage::from_raw(width, height, transmuted_pixels).unwrap();
+
+        // for y in 0..height {
+        //     for x in 0..width {
+        //         let fx = x as f32 + 0.5;
+        //         let fy = y as f32 + 0.5;
+
+        //         let pixel_vec = view_matrix * Vector3::new(
+        //             Z_NEAR * ((fx / fw) - 0.5) * side * fw / fh,
+        //             Z_NEAR * -((fy / fh) - 0.5) * side,
+        //             Z_NEAR,
+        //         );
+        //         let ray = Ray::new(self.eye, pixel_vec);
+        //         let pixel_color = self.trace_ray(width, height, &ray, x, y);
+        //         img_buffer.put_pixel(x, y, pixel_color.as_rgb());
+        //     }
+        // }
+
+        buffer.save(file_name).unwrap();
+        // img_buffer.save(file_name).unwrap();
     }
 
     fn trace_ray(&self, width: u32, height: u32, ray: &Ray, x: u32, y: u32) -> Color {

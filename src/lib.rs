@@ -4,6 +4,7 @@ extern crate png;
 extern crate rand;
 extern crate rlua;
 extern crate roots;
+extern crate rayon;
 
 pub mod geometry;
 pub mod scene;

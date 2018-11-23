@@ -1,16 +1,20 @@
 use geometry::Ray;
 use nalgebra::{dot, Unit, Vector3};
+use geometry::Mesh;
 use roots::find_roots_quadratic;
 use roots::Roots;
 
 const SPHERE_EPS: f32 = 0.0001;
 const CUBE_EPS: f32 = 0.0001;
 const CLOSE_EPS: f32 = 0.001;
+const TRIANGLE_EPS: f32 = 0.0000001;
+
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Primitive {
     Sphere,
     Cube,
+    Mesh(Mesh),
     None,
 }
 
@@ -19,6 +23,7 @@ impl Primitive {
         match self {
             Primitive::Sphere => sphere_collides(ray, t_value, normal),
             Primitive::Cube => cube_collides(ray, t_value, normal),
+            Primitive::Mesh(mesh) => mesh_collides(ray, mesh, t_value, normal),
             _ => false,
         }
     }
@@ -134,4 +139,65 @@ fn sphere_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> b
     } else {
         false
     }
+}
+
+fn triangle_collides(ray: &Ray, triangle: &[Vector3<f32>; 3], t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
+    let edge1 = triangle[1] - triangle[0];
+    let edge2 = triangle[2] - triangle[0];
+
+    let face_normal = edge1.cross(&edge2).normalize();
+
+    let q = ray.dir.cross(&edge2);
+    let a = edge1.dot(&q);
+
+    if (a.abs() <= TRIANGLE_EPS) || face_normal.dot(&ray.dir) >= 0.0 {
+        return false;
+    }
+
+    let s = (ray.src - triangle[0]).coords / a;
+    let r = s.cross(&edge1);
+
+    let x = s.dot(&q);
+    let y = r.dot(&ray.dir);
+    let z = 1.0f32 - x - y;
+
+    if x < 0.0 || y < 0.0 || z < 0.0 {
+        return false;
+    }
+
+    *t_value = edge2.dot(&r);
+
+    if *t_value < TRIANGLE_EPS {
+        return false
+    }
+
+    *normal = face_normal;
+    true
+}
+
+fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
+    if !aabb_collides(ray, &mesh.aabb_corner, &mesh.aabb_size, t_value) {
+        return false
+    }
+
+    let mut smallest_t = -1.0f32;
+    let mut smallest_normal = Vector3::new(0.0f32, 0.0f32, 0.0f32);
+    let mut triangle = [smallest_normal, smallest_normal, smallest_normal];
+
+    for face in mesh.faces.iter() {
+        triangle[0] = mesh.vertices[face[0]];
+        triangle[1] = mesh.vertices[face[1]];
+        triangle[2] = mesh.vertices[face[2]];
+
+        if triangle_collides(ray, &triangle, t_value, normal) {
+            if smallest_t == -1.0 || *t_value < smallest_t {
+                smallest_t = *t_value;
+                smallest_normal = *normal;
+            }
+        }
+    }
+
+    *normal = smallest_normal;
+    *t_value = smallest_t;
+    smallest_t != -1.0
 }

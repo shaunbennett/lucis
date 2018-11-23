@@ -4,6 +4,9 @@ use nalgebra::{Affine3, Isometry, Point3, Vector3};
 use rand::Rng;
 use scene::{Color, Intersect, Light, SceneNode};
 use rayon::prelude::*;
+use std::sync::Mutex;
+use std::time::Duration;
+use pbr::ProgressBar;
 
 type Isometry3<N> = Isometry<N, nalgebra::U3, nalgebra::Rotation3<f32>>;
 
@@ -74,6 +77,8 @@ impl Raytracer {
         let fh = height as f32;
 
         let pixel_count = width * height;
+        let pb = Mutex::new(ProgressBar::new(pixel_count as u64));
+        pb.lock().unwrap().set_max_refresh_rate(Some(Duration::from_millis(500)));
 
         let image_pixels: Vec<Rgb<u8>> = (0..pixel_count).into_par_iter()
             .map(|i| {
@@ -87,8 +92,13 @@ impl Raytracer {
                     Z_NEAR,
                 );
                 let ray = Ray::new(self.eye, pixel_vec);
-                self.trace_ray(width, height, &ray, x, y).as_rgb()
+                let color = self.trace_ray(width, height, &ray, x, y);
+                pb.lock().unwrap().inc();
+                color.as_rgb()
             }).collect();
+
+
+        pb.lock().unwrap().finish_print("Finished raytracing, outputting image...");
 
         // ENTERING SCARY ZONE, DON'T ASK QUESTIONS
         let transmuted_pixels = unsafe {

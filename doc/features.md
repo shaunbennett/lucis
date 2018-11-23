@@ -16,8 +16,8 @@
 - [ ] Bounding volumes on meshes
 - [ ] Cylinders can be rendered
 - [ ] Cones can be rendered
-- [ ] Phong lighting is implemented
-- [ ] Shadow rays for simple shadows
+- [x] Phong lighting is implemented
+- [x] Shadow rays for simple shadows
 - [ ] Supersampling (for AA)
 - [ ] Texture Mapping
 - [ ] L-System modelling

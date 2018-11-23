@@ -210,9 +210,9 @@ impl SceneNode {
             self.name, axis, angle
         );
         let axis = match axis {
-            "x" => Vector3::x_axis(),
-            "y" => Vector3::y_axis(),
-            "z" => Vector3::z_axis(),
+            "x" | "X" => Vector3::x_axis(),
+            "y" | "Y" => Vector3::y_axis(),
+            "z" | "Z" => Vector3::z_axis(),
             _ => panic!(
                 "Got unexpected axis: \'{}\' while trying to apply rotation to node \'{}\'",
                 axis, self.name

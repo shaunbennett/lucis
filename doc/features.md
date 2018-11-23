@@ -27,7 +27,7 @@
 
 ### Performance
 - [ ] Bounding volumes on meshes
-- [ ] Multithreading
+- [x] Multithreading
 - [ ] Spacial structure for node tree
 
 ### Noted Extras

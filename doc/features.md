@@ -4,16 +4,15 @@
 - [x] Can output an image
 - [x] Scenes can be loaded through lua files
 - [ ] Can specify lua file through command line argument
-- [ ] Can load an obj file into a Mesh structure
+- [x] Can load an obj file into a Mesh structure
 - [ ] Configuration can be loaded through lua
 - [ ] Errors (i.e. lua issues) are passed up through Result and handled
 
 ### Ray Tracing
 - [x] Intersection with SceneNode is working
 - [x] Spheres can be rendered
-- [ ] Cubes can be rendered
-- [ ] Meshes can be rendered
-- [ ] Bounding volumes on meshes
+- [x] Cubes can be rendered
+- [x] Meshes can be rendered
 - [ ] Cylinders can be rendered
 - [ ] Cones can be rendered
 - [x] Phong lighting is implemented
@@ -26,7 +25,7 @@
 - [ ] Volumetric solids (for fog)
 
 ### Performance
-- [ ] Bounding volumes on meshes
+- [x] Bounding volumes on meshes
 - [x] Multithreading
 - [ ] Spacial structure for node tree
 

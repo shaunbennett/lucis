@@ -5,6 +5,7 @@ use roots::find_roots_quadratic;
 use roots::Roots;
 
 const SPHERE_EPS: f32 = 0.0001;
+const CYLINDER_EPS: f32 = 0.0001;
 const CUBE_EPS: f32 = 0.0001;
 const CLOSE_EPS: f32 = 0.001;
 const TRIANGLE_EPS: f32 = 0.0000001;
@@ -14,6 +15,7 @@ const TRIANGLE_EPS: f32 = 0.0000001;
 pub enum Primitive {
     Sphere,
     Cube,
+    Cylinder,
     Mesh(Mesh),
     None,
 }
@@ -22,6 +24,7 @@ impl Primitive {
     pub fn collides(&self, ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
         match self {
             Primitive::Sphere => sphere_collides(ray, t_value, normal),
+            Primitive::Cylinder => cylinder_collides(ray, t_value, normal),
             Primitive::Cube => cube_collides(ray, t_value, normal),
             Primitive::Mesh(mesh) => mesh_collides(ray, mesh, t_value, normal),
             _ => false,
@@ -173,6 +176,83 @@ fn triangle_collides(ray: &Ray, triangle: &[Vector3<f32>; 3], t_value: &mut f32,
 
     *normal = face_normal;
     true
+}
+
+fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
+    // ray = src + t*dir
+    // cylinder: x^2 + y^2 = 1
+
+    let src = &ray.src;
+    let dir = &ray.dir;
+
+    let a = (dir.x * dir.x) + (dir.y * dir.y);
+    let b = 2.0f32 * ((src.x * dir.x) + (src.y * dir.y));
+    let c = (src.x * src.x) + (src.y * src.y) - 1.0f32;
+
+    let mut intercept_cap = false;
+    // closest cap
+    let mut cap_normal = Vector3::new(0.0, 0.0, 1.0);
+    let closest_root = match find_roots_quadratic(a, b, c) {
+        Roots::One([r1]) => r1,
+        Roots::Two([r1, r2]) => {
+            let i_1 = &ray.src + (r1 * &ray.dir);
+            let i_2 = &ray.src + (r2 * &ray.dir);
+            if i_1.z > 1.0 && i_2.z > 1.0 {
+                return false
+            } else if i_1.z < -1.0 && i_2.z < -1.0 {
+                return false
+            } else if i_1.z.abs() < 1.0 && i_2.z.abs() < 1.0 {
+                r1
+            } else {
+                // check cap intercepts
+                println!("z1: {}, z2: {}", i_1.z, i_2.z);
+                if i_1.z < -1.0 && -1.0 < i_2.z {
+                    // first cap
+                    let t_value = (-1.0f32 - src.z) / dir.z;
+                    if t_value < r1 {
+                        intercept_cap = true;
+                        t_value
+                    } else {
+                        r1
+                    }
+                } else if i_1.z < 1.0 && 1.0 < i_2.z {
+                    // second cap
+                    let t_value = (1.0f32 - src.z) / dir.z;
+                    if t_value < r2 {
+                        cap_normal = Vector3::new(0.0, 0.0, -1.0);
+                        intercept_cap = true;
+                        t_value
+                    } else {
+                        r2
+                    }
+                } else {
+                    intercept_cap = true;
+                    let t1 = (-1.0f32 - src.z) / dir.z;
+                    let t2 = (1.0f32 - src.z) / dir.z;
+                    if t1 < t2 {
+                        t1
+                    } else {
+                        cap_normal = Vector3::new(0.0, 0.0, -1.0);
+                        t2
+                    }
+                }
+            }
+        },
+        _ => return false
+    };
+
+    if closest_root > CYLINDER_EPS {
+        let intersection_point = &ray.src + (closest_root * &ray.dir);
+        *t_value = closest_root;
+        if intercept_cap {
+            *normal = cap_normal;
+        } else {
+            *normal = Vector3::new(intersection_point.x, intersection_point.y, 0.0f32);
+        }
+        true
+    } else {
+        false
+    }
 }
 
 fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {

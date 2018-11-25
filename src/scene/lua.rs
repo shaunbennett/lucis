@@ -84,6 +84,8 @@ fn create_light(_: &Lua, (p, c, a): (Table, Table, Table)) -> Result<Light> {
         Color::new(cr, cg, cb),
         Point3::new(px, py, pz),
         [a1, a2, a3],
+        1.0,
+        64
     ))
 }
 

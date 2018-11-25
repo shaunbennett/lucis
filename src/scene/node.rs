@@ -73,10 +73,20 @@ fn calculate_phong_lighting(
     let mut final_color = *kd * raytracer.ambient;
 
     for light in raytracer.lights.iter() {
-        let shadow_ray = Ray::new_from_points(intersect_point, light.position);
-        if raytracer.root_node.intersects(&shadow_ray).is_some() {
+        let total_shadow_rays = light.num_samples;
+        let mut shadow_rays_hit = 0;
+        for p in light.light_samples.iter() {
+            let shadow_ray = Ray::new_from_points(intersect_point, *p);
+            if raytracer.root_node.intersects(&shadow_ray).is_none() {
+                shadow_rays_hit = shadow_rays_hit + 1;
+            }
+        }
+        if shadow_rays_hit == 0 {
             continue;
         }
+
+        let shadow_multiplier = shadow_rays_hit as f32 / total_shadow_rays as f32;
+
         let mut L = light.position - intersect_point;
         let L_norm = L.norm();
         L = L.normalize();
@@ -87,7 +97,7 @@ fn calculate_phong_lighting(
         let attenuation =
             light.falloff[0] + (light.falloff[1] * L_norm) + (light.falloff[2] * L_norm * L_norm);
         let light_sum = (kd * Ldotn * light.color) + (ks * rdotv.powf(*shininess) * light.color);
-        final_color = final_color + (light_sum / attenuation);
+        final_color = final_color + (shadow_multiplier * (light_sum / attenuation));
     }
 
     return final_color;

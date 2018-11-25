@@ -205,37 +205,38 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
                 r1
             } else {
                 // check cap intercepts
-                println!("z1: {}, z2: {}", i_1.z, i_2.z);
-                if i_1.z < -1.0 && -1.0 < i_2.z {
-                    // first cap
-                    let t_value = (-1.0f32 - src.z) / dir.z;
-                    if t_value < r1 {
-                        intercept_cap = true;
-                        t_value
-                    } else {
-                        r1
-                    }
-                } else if i_1.z < 1.0 && 1.0 < i_2.z {
-                    // second cap
-                    let t_value = (1.0f32 - src.z) / dir.z;
-                    if t_value < r2 {
-                        cap_normal = Vector3::new(0.0, 0.0, -1.0);
-                        intercept_cap = true;
-                        t_value
-                    } else {
-                        r2
-                    }
-                } else {
-                    intercept_cap = true;
-                    let t1 = (-1.0f32 - src.z) / dir.z;
-                    let t2 = (1.0f32 - src.z) / dir.z;
-                    if t1 < t2 {
-                        t1
-                    } else {
-                        cap_normal = Vector3::new(0.0, 0.0, -1.0);
-                        t2
-                    }
-                }
+                r1
+//                println!("z1: {}, z2: {}", i_1.z, i_2.z);
+//                if i_1.z < -1.0 && -1.0 < i_2.z {
+//                    // first cap
+//                    let t_value = (-1.0f32 - src.z) / dir.z;
+//                    if t_value < r1 {
+//                        intercept_cap = true;
+//                        t_value
+//                    } else {
+//                        r1
+//                    }
+//                } else if i_1.z < 1.0 && 1.0 < i_2.z {
+//                    // second cap
+//                    let t_value = (1.0f32 - src.z) / dir.z;
+//                    if t_value < r2 {
+//                        cap_normal = Vector3::new(0.0, 0.0, -1.0);
+//                        intercept_cap = true;
+//                        t_value
+//                    } else {
+//                        r2
+//                    }
+//                } else {
+//                    intercept_cap = true;
+//                    let t1 = (-1.0f32 - src.z) / dir.z;
+//                    let t2 = (1.0f32 - src.z) / dir.z;
+//                    if t1 < t2 {
+//                        t1
+//                    } else {
+//                        cap_normal = Vector3::new(0.0, 0.0, -1.0);
+//                        t2
+//                    }
+//                }
             }
         },
         _ => return false

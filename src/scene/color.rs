@@ -33,6 +33,18 @@ impl Mul for Color {
     }
 }
 
+impl Mul<Color> for f32 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Color {
+        Color {
+            r: self * rhs.r,
+            g: self * rhs.g,
+            b: self * rhs.b,
+        }.clamp()
+    }
+}
+
 impl<'a, 'b> Mul<&'b Vector3<f32>> for &'a Color {
     type Output = Color;
 

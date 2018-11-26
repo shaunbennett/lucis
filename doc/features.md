@@ -13,7 +13,7 @@
 - [x] Spheres can be rendered
 - [x] Cubes can be rendered
 - [x] Meshes can be rendered
-- [ ] Cylinders can be rendered
+- [ ] Cylinders can be rendered (WIP)
 - [ ] Cones can be rendered
 - [x] Phong lighting is implemented
 - [x] Shadow rays for simple shadows
@@ -21,7 +21,8 @@
 - [ ] Texture Mapping
 - [ ] L-System modelling
 - [ ] Bump Mapping
-- [ ] Spotlight lighting with soft shadows
+- [x] Soft shadow lighting
+- [ ] Spotlight based lighting
 - [ ] Volumetric solids (for fog)
 
 ### Performance

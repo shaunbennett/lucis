@@ -84,8 +84,8 @@ fn create_light(_: &Lua, (p, c, a): (Table, Table, Table)) -> Result<Light> {
         Color::new(cr, cg, cb),
         Point3::new(px, py, pz),
         [a1, a2, a3],
-        1.0,
-        64
+        0.0,
+        1
     ))
 }
 
@@ -135,7 +135,14 @@ fn render(
 
 impl UserData for Material {}
 
-impl UserData for Light {}
+impl UserData for Light {
+    fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
+        methods.add_method_mut("set_soft", |_, light, (radius, samples): (f32, u32)| {
+            light.set_soft(radius, samples);
+            Ok(())
+        });
+    }
+}
 
 impl UserData for SceneNode {
     fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {

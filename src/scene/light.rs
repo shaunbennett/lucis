@@ -30,6 +30,12 @@ impl Light {
         }
     }
 
+    pub fn set_soft(&mut self, radius: f32, num_samples: u32) {
+        self.radius = radius;
+        self.num_samples = num_samples;
+        self.light_samples = Light::generate_light_samples(&self.position, radius, num_samples);
+    }
+
     /// Get a random point in the radius of the light
     /// Used to create soft shadows
     pub fn get_random_point(&self) -> Point3<f32> {
@@ -41,6 +47,10 @@ impl Light {
     }
 
     fn generate_light_samples(position: &Point3<f32>, radius: f32, num_samples: u32) -> Vec<Point3<f32>> {
+        if radius == 0.0 || num_samples == 1 {
+            return vec![*position];
+        }
+
         // Generate an array of random light samples uniformly distributed across the light sphere
         let mut samples = vec![];
         let samples_per_dimension = (num_samples as f32).sqrt() as u32;

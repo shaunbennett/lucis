@@ -7,6 +7,9 @@ use rayon::prelude::*;
 use std::slice;
 use std::sync::Mutex;
 use std::time::Duration;
+use std::sync::Arc;
+use std::sync::atomic::{Ordering, AtomicUsize};
+use std::thread;
 use pbr::ProgressBar;
 
 type Isometry3<N> = Isometry<N, U3, Rotation3<f32>>;
@@ -78,8 +81,26 @@ impl Raytracer {
         let fh = height as f32;
 
         let pixel_count = width * height;
-        let pb = Mutex::new(ProgressBar::new(pixel_count as u64));
-        pb.lock().unwrap().set_max_refresh_rate(Some(Duration::from_millis(500)));
+//        let pb = Mutex::new(ProgressBar::new(pixel_count as u64));
+//        pb.lock().unwrap().set_max_refresh_rate(Some(Duration::from_millis(500)));
+
+        let pixels_rendered = Arc::new(AtomicUsize::new(0));
+
+        let t_pr = pixels_rendered.clone();
+        let pc_usize = pixel_count as usize;
+        thread::spawn(move || {
+            let mut value = t_pr.load(Ordering::Relaxed);
+            let mut pb = ProgressBar::new(pc_usize as u64);
+            pb.show_counter = false;
+            pb.show_speed = false;
+            pb.tick_format("▀▐▄▌");
+            while value < pc_usize {
+                thread::sleep(Duration::from_millis(100));
+                pb.set(value as u64);
+                value = t_pr.load(Ordering::Relaxed);
+            }
+            pb.finish_print("Complete!");
+        });
 
         let image_pixels: Vec<Rgb<u8>> = (0..pixel_count).into_par_iter()
             .map(|i| {
@@ -94,12 +115,13 @@ impl Raytracer {
                 );
                 let ray = Ray::new(self.eye, pixel_vec);
                 let color = self.trace_ray(width, height, &ray, x, y);
-                pb.lock().unwrap().inc();
+                pixels_rendered.fetch_add(1, Ordering::Relaxed);
+//                pb.lock().unwrap().inc();
                 color.as_rgb()
             }).collect();
 
 
-        pb.lock().unwrap().finish_print("Finished raytracing, outputting image...");
+//        pb.lock().unwrap().finish_print("Finished raytracing, outputting image...");
 
         // ENTERING SCARY ZONE, DON'T ASK QUESTIONS
         let transmuted_pixels = unsafe {

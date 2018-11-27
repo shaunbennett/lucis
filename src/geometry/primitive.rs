@@ -6,6 +6,7 @@ use roots::Roots;
 
 const SPHERE_EPS: f32 = 0.0001;
 const CYLINDER_EPS: f32 = 0.0001;
+const CONE_EPS: f32 = 0.001;
 const CUBE_EPS: f32 = 0.0001;
 const CLOSE_EPS: f32 = 0.001;
 const TRIANGLE_EPS: f32 = 0.0000001;
@@ -181,12 +182,44 @@ fn triangle_collides(ray: &Ray, triangle: &[Vector3<f32>; 3], t_value: &mut f32,
 }
 
 fn cone_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
-    false
+    let src = &ray.src;
+    let dir = &ray.dir;
+
+    let a = (dir.x * dir.x) + (dir.z * dir.z) - (dir.y * dir.y);
+    let b = 2.0f32 * ((src.x * dir.x) + (src.z * dir.z) - (src.y * dir.y));
+    let c = (src.x * src.x) + (src.z * src.z) - (src.y * src.y);
+
+    let closest_root = match find_roots_quadratic(a, b, c) {
+        Roots::One([r1]) => {
+            let i_1 = &ray.src + (r1 * &ray.dir);
+            if i_1.y >= 0.0 && i_1.y <= 1.0 {
+                r1
+            } else {
+                return false;
+            }
+        },
+        Roots::Two([r1, r2]) => {
+            let i_1 = &ray.src + (r1 * &ray.dir);
+            if i_1.y >= 0.0 && i_1.y <= 1.0 {
+                r1
+            } else {
+                return false;
+            }
+        },
+        _ => return false
+    };
+
+    if closest_root > CONE_EPS {
+        let intersection_point = &ray.src + (closest_root * &ray.dir);
+        *t_value = closest_root;
+        *normal = Vector3::new(0.0f32, 0.0f32, 1.0f32);
+        true
+    } else {
+        false
+    }
 }
 
 fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
-    // ray = src + t*dir
-    // cylinder: x^2 + y^2 = 1
     let src = &ray.src;
     let dir = &ray.dir;
 
@@ -198,7 +231,14 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
     // closest cap
     let mut cap_normal = Vector3::new(0.0, 1.0, 0.0);
     let closest_root = match find_roots_quadratic(a, b, c) {
-        Roots::One([r1]) => r1,
+        Roots::One([r1]) => {
+            let i_1 = &ray.src + (r1 * &ray.dir);
+            if i_1.y >= 0.0 && i_1.y <= 1.0 {
+                r1
+            } else {
+                return false;
+            }
+        },
         Roots::Two([r1, r2]) => {
             let i_1 = &ray.src + (r1 * &ray.dir);
             let i_2 = &ray.src + (r2 * &ray.dir);

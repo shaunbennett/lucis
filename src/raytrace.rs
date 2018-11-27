@@ -93,7 +93,8 @@ impl Raytracer {
             let mut pb = ProgressBar::new(pc_usize as u64);
             pb.show_counter = false;
             pb.show_speed = false;
-            pb.tick_format("▀▐▄▌");
+            pb.tick_format("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏");
+            pb.format("[▱▱ ]");
             while value < pc_usize {
                 thread::sleep(Duration::from_millis(100));
                 pb.set(value as u64);

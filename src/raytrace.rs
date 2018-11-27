@@ -1,14 +1,15 @@
 use super::geometry::Ray;
-use image::{Rgb};
-use nalgebra::{Affine3, Isometry, Point3, Vector3};
-use rand::Rng;
+use image::{save_buffer, RGB, Rgb};
+use nalgebra::{convert, U3, Rotation3, Affine3, Isometry, Point3, Vector3};
+use rand::{thread_rng, Rng};
 use scene::{Color, Intersect, Light, SceneNode};
 use rayon::prelude::*;
+use std::slice;
 use std::sync::Mutex;
 use std::time::Duration;
 use pbr::ProgressBar;
 
-type Isometry3<N> = Isometry<N, nalgebra::U3, nalgebra::Rotation3<f32>>;
+type Isometry3<N> = Isometry<N, U3, Rotation3<f32>>;
 
 pub struct TracingOptions {
     super_sampling: bool,
@@ -70,7 +71,7 @@ impl Raytracer {
         println!("Up: {}", self.up);
 
         let view_matrix: Affine3<f32> =
-            nalgebra::convert(Isometry3::look_at_rh(&self.eye, &self.view, &self.up));
+            convert(Isometry3::look_at_rh(&self.eye, &self.view, &self.up));
 
         let side = -2.0f32 * (self.fov_y.to_radians() / 2.0f32).tan();
         let fw = width as f32;
@@ -102,9 +103,9 @@ impl Raytracer {
 
         // ENTERING SCARY ZONE, DON'T ASK QUESTIONS
         let transmuted_pixels = unsafe {
-            std::slice::from_raw_parts(image_pixels.as_ptr() as *mut u8, (pixel_count * 3) as usize)
+            slice::from_raw_parts(image_pixels.as_ptr() as *mut u8, (pixel_count * 3) as usize)
         };
-        image::save_buffer(file_name, transmuted_pixels, width, height, image::RGB(8)).unwrap()
+        save_buffer(file_name, transmuted_pixels, width, height, RGB(8)).unwrap()
     }
 
     fn trace_ray(&self, width: u32, height: u32, ray: &Ray, x: u32, y: u32) -> Color {
@@ -132,7 +133,7 @@ fn get_background_color(x: u32, y: u32, width: u32, height: u32) -> Color {
             rand_chance = percent * 0.003f32;
         }
 
-        let mut rng = rand::thread_rng();
+        let mut rng = thread_rng();
         let render_star: f32 = rng.gen();
         if render_star <= rand_chance {
             // Render a star instead

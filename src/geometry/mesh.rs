@@ -1,6 +1,7 @@
 use nalgebra::Vector3;
 use std::iter::Iterator;
 use std::error::Error;
+use std::f32;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
@@ -18,8 +19,8 @@ pub struct Mesh {
 
 // Generate a bounding box for a set of vertices
 fn generate_bounding_box(vertices: &[Vector3<f32>]) -> (Vector3<f32>, Vector3<f32>) {
-    let mut min = Vector3::new(std::f32::MAX, std::f32::MAX, std::f32::MAX);
-    let mut max = Vector3::new(std::f32::MIN, std::f32::MIN, std::f32::MIN);
+    let mut min = Vector3::new(f32::MAX, f32::MAX, f32::MAX);
+    let mut max = Vector3::new(f32::MIN, f32::MIN, f32::MIN);
 
     for vertex in vertices {
         if vertex.x < min.x {

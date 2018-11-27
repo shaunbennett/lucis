@@ -1,6 +1,6 @@
 use std::default::Default;
 use std::num;
-use rand::Rng;
+use rand::{thread_rng, Rng};
 use nalgebra::Point3;
 use scene::Color;
 
@@ -39,7 +39,7 @@ impl Light {
     /// Get a random point in the radius of the light
     /// Used to create soft shadows
     pub fn get_random_point(&self) -> Point3<f32> {
-        let mut rng = rand::thread_rng();
+        let mut rng = thread_rng();
         let x_delta = rng.gen_range(-1.0f32, 1.0f32);
         let y_delta = rng.gen_range(-1.0f32, 1.0f32);
         let z_delta = rng.gen_range(-1.0f32, 1.0f32);

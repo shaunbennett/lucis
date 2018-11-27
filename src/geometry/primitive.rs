@@ -16,6 +16,7 @@ pub enum Primitive {
     Sphere,
     Cube,
     Cylinder,
+    Cone,
     Mesh(Mesh),
     None,
 }
@@ -25,6 +26,7 @@ impl Primitive {
         match self {
             Primitive::Sphere => sphere_collides(ray, t_value, normal),
             Primitive::Cylinder => cylinder_collides(ray, t_value, normal),
+            Primitive::Cone => cone_collides(ray, t_value, normal),
             Primitive::Cube => cube_collides(ray, t_value, normal),
             Primitive::Mesh(mesh) => mesh_collides(ray, mesh, t_value, normal),
             _ => false,
@@ -178,65 +180,51 @@ fn triangle_collides(ray: &Ray, triangle: &[Vector3<f32>; 3], t_value: &mut f32,
     true
 }
 
+fn cone_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
+    false
+}
+
 fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
     // ray = src + t*dir
     // cylinder: x^2 + y^2 = 1
-
     let src = &ray.src;
     let dir = &ray.dir;
 
-    let a = (dir.x * dir.x) + (dir.y * dir.y);
-    let b = 2.0f32 * ((src.x * dir.x) + (src.y * dir.y));
-    let c = (src.x * src.x) + (src.y * src.y) - 1.0f32;
+    let a = (dir.x * dir.x) + (dir.z * dir.z);
+    let b = 2.0f32 * ((src.x * dir.x) + (src.z * dir.z));
+    let c = (src.x * src.x) + (src.z * src.z) - 1.0f32;
 
     let mut intercept_cap = false;
     // closest cap
-    let mut cap_normal = Vector3::new(0.0, 0.0, 1.0);
+    let mut cap_normal = Vector3::new(0.0, 1.0, 0.0);
     let closest_root = match find_roots_quadratic(a, b, c) {
         Roots::One([r1]) => r1,
         Roots::Two([r1, r2]) => {
             let i_1 = &ray.src + (r1 * &ray.dir);
             let i_2 = &ray.src + (r2 * &ray.dir);
-            if i_1.z > 1.0 && i_2.z > 1.0 {
-                return false
-            } else if i_1.z < -1.0 && i_2.z < -1.0 {
-                return false
-            } else if i_1.z.abs() < 1.0 && i_2.z.abs() < 1.0 {
+            // Although r1 <= r2, no guarantees about y1 and y2
+            let y1 = i_1.y;
+            let y2 = i_2.y;
+
+            if (y1 < 0.0 && y2 < 0.0) || (y1 > 1.0 && y2 > 1.0) {
+                // Pass over or under the cylinder
+                return false;
+            } else if y1 >= 0.0 && y1 <= 1.0 {
+                // First intercept hits the cylinder
                 r1
+            } else if y1 < 0.0 {
+                // Hit the bottom cap
+                cap_normal = Vector3::new(0.0, -1.0, 0.0);
+                intercept_cap = true;
+                -src.y / dir.y
+            } else if y1 > 1.0 {
+                // Hit the top cap
+                intercept_cap = true;
+                (1.0-src.y) / dir.y
             } else {
-                // check cap intercepts
-                r1
-//                println!("z1: {}, z2: {}", i_1.z, i_2.z);
-//                if i_1.z < -1.0 && -1.0 < i_2.z {
-//                    // first cap
-//                    let t_value = (-1.0f32 - src.z) / dir.z;
-//                    if t_value < r1 {
-//                        intercept_cap = true;
-//                        t_value
-//                    } else {
-//                        r1
-//                    }
-//                } else if i_1.z < 1.0 && 1.0 < i_2.z {
-//                    // second cap
-//                    let t_value = (1.0f32 - src.z) / dir.z;
-//                    if t_value < r2 {
-//                        cap_normal = Vector3::new(0.0, 0.0, -1.0);
-//                        intercept_cap = true;
-//                        t_value
-//                    } else {
-//                        r2
-//                    }
-//                } else {
-//                    intercept_cap = true;
-//                    let t1 = (-1.0f32 - src.z) / dir.z;
-//                    let t2 = (1.0f32 - src.z) / dir.z;
-//                    if t1 < t2 {
-//                        t1
-//                    } else {
-//                        cap_normal = Vector3::new(0.0, 0.0, -1.0);
-//                        t2
-//                    }
-//                }
+                // Hit both caps
+                // TODO
+                return false;
             }
         },
         _ => return false
@@ -248,7 +236,7 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
         if intercept_cap {
             *normal = cap_normal;
         } else {
-            *normal = Vector3::new(intersection_point.x, intersection_point.y, 0.0f32);
+            *normal = Vector3::new(intersection_point.x, 0.0f32, intersection_point.z);
         }
         true
     } else {

@@ -137,8 +137,8 @@ fn render(
         ambient: Color::new(0.2, 0.2, 0.2),
         lights: lights_vec,
     };
+    println!("Rendering {}", file_name);
     raytracer.render(file_name.as_ref(), width, height, Default::default());
-    println!("Rendering complete!");
     Ok(())
 }
 

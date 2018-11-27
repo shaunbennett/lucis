@@ -68,11 +68,6 @@ const Z_NEAR: f32 = -1.0;
 impl Raytracer {
     // Ray trace and save a specific image
     pub fn render(&self, file_name: &str, width: u32, height: u32, options: TracingOptions) {
-        println!("Rendering!",);
-        println!("Eye: {}", self.eye);
-        println!("View: {}", self.view);
-        println!("Up: {}", self.up);
-
         let view_matrix: Affine3<f32> =
             convert(Isometry3::look_at_rh(&self.eye, &self.view, &self.up));
 
@@ -81,26 +76,25 @@ impl Raytracer {
         let fh = height as f32;
 
         let pixel_count = width * height;
-//        let pb = Mutex::new(ProgressBar::new(pixel_count as u64));
-//        pb.lock().unwrap().set_max_refresh_rate(Some(Duration::from_millis(500)));
 
         let pixels_rendered = Arc::new(AtomicUsize::new(0));
 
         let t_pr = pixels_rendered.clone();
         let pc_usize = pixel_count as usize;
-        thread::spawn(move || {
-            let mut value = t_pr.load(Ordering::Relaxed);
+        let completion_string = format!("Completed {}!", file_name);
+        let progress_thread = thread::spawn(move || {
             let mut pb = ProgressBar::new(pc_usize as u64);
             pb.show_counter = false;
             pb.show_speed = false;
             pb.tick_format("⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏");
             pb.format("[▱▱ ]");
+            let mut value = t_pr.load(Ordering::Relaxed);
             while value < pc_usize {
                 thread::sleep(Duration::from_millis(100));
                 pb.set(value as u64);
                 value = t_pr.load(Ordering::Relaxed);
             }
-            pb.finish_print("Complete!");
+            pb.finish_print(&completion_string);
         });
 
         let image_pixels: Vec<Rgb<u8>> = (0..pixel_count).into_par_iter()
@@ -117,12 +111,8 @@ impl Raytracer {
                 let ray = Ray::new(self.eye, pixel_vec);
                 let color = self.trace_ray(width, height, &ray, x, y);
                 pixels_rendered.fetch_add(1, Ordering::Relaxed);
-//                pb.lock().unwrap().inc();
                 color.as_rgb()
             }).collect();
-
-
-//        pb.lock().unwrap().finish_print("Finished raytracing, outputting image...");
 
         // ENTERING SCARY ZONE, DON'T ASK QUESTIONS
         let transmuted_pixels = unsafe {

@@ -1,17 +1,16 @@
 extern crate image;
 extern crate nalgebra;
-extern crate png;
+extern crate pbr;
 extern crate rand;
+extern crate rayon;
 extern crate rlua;
 extern crate roots;
-extern crate rayon;
-extern crate pbr;
 
 pub mod geometry;
 pub mod scene;
 
 mod raytrace;
-pub use raytrace::{Raytracer, TracingOptions};
+pub use raytrace::Raytracer;
 
 use nalgebra::{Point3, Transform3, Vector3};
 

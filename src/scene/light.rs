@@ -1,8 +1,7 @@
-use std::default::Default;
-use std::num;
-use rand::{thread_rng, Rng};
 use nalgebra::Point3;
+use rand::{thread_rng, Rng};
 use scene::Color;
+use std::default::Default;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Light {
@@ -19,7 +18,13 @@ pub struct Light {
 }
 
 impl Light {
-    pub fn new(color: Color, position: Point3<f32>, falloff: [f32; 3], radius: f32, num_samples: u32) -> Light {
+    pub fn new(
+        color: Color,
+        position: Point3<f32>,
+        falloff: [f32; 3],
+        radius: f32,
+        num_samples: u32,
+    ) -> Light {
         Light {
             color,
             position,
@@ -46,7 +51,11 @@ impl Light {
         Point3::new(x_delta, y_delta, z_delta) + self.position.coords
     }
 
-    fn generate_light_samples(position: &Point3<f32>, radius: f32, num_samples: u32) -> Vec<Point3<f32>> {
+    fn generate_light_samples(
+        position: &Point3<f32>,
+        radius: f32,
+        num_samples: u32,
+    ) -> Vec<Point3<f32>> {
         if radius == 0.0 || num_samples == 1 {
             return vec![*position];
         }
@@ -60,14 +69,14 @@ impl Light {
 
         for x in 0..samples_per_dimension {
             for y in 0..samples_per_dimension {
-//                for z in 0..samples_per_dimension {
-                    let x_delta = -radius + (x as f32 * inc);
-                    let y_delta = -radius + (y as f32 * inc);
-//                    let z_delta = -radius + (z as f32 * inc);
-                    let sample = Point3::new(x_delta, y_delta, 0.0) + position.coords;
-                    println!("Added sample: {}", sample);
-                    samples.push(sample);
-//                }
+                //                for z in 0..samples_per_dimension {
+                let x_delta = -radius + (x as f32 * inc);
+                let y_delta = -radius + (y as f32 * inc);
+                //                    let z_delta = -radius + (z as f32 * inc);
+                let sample = Point3::new(x_delta, y_delta, 0.0) + position.coords;
+                println!("Added sample: {}", sample);
+                samples.push(sample);
+                //                }
             }
         }
         samples
@@ -84,7 +93,7 @@ impl Default for Light {
             // Hard lighting
             radius: 0.0,
             num_samples: 1,
-            light_samples: vec![Point3::new(0.0, 0.0, 0.0)]
+            light_samples: vec![Point3::new(0.0, 0.0, 0.0)],
         }
     }
 }

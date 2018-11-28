@@ -1,4 +1,4 @@
-use geometry::{Primitive,Mesh};
+use geometry::{Mesh, Primitive};
 use nalgebra::{Point3, Vector3};
 use rlua::{Function, Lua, Result, Table, UserData, UserDataMethods};
 use scene::{Color, Light, Material, SceneNode};
@@ -94,7 +94,7 @@ fn create_light(_: &Lua, (p, c, a): (Table, Table, Table)) -> Result<Light> {
         Point3::new(px, py, pz),
         [a1, a2, a3],
         0.0,
-        1
+        1,
     ))
 }
 
@@ -138,7 +138,7 @@ fn render(
         lights: lights_vec,
     };
     println!("Rendering {}", file_name);
-    raytracer.render(file_name.as_ref(), width, height, Default::default());
+    raytracer.render(file_name.as_ref(), width, height);
     Ok(())
 }
 

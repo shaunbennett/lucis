@@ -1,10 +1,10 @@
 use nalgebra::Vector3;
-use std::iter::Iterator;
 use std::error::Error;
 use std::f32;
 use std::fs::File;
-use std::io::BufReader;
 use std::io::prelude::*;
+use std::io::BufReader;
+use std::iter::Iterator;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Mesh {
@@ -64,15 +64,15 @@ impl Mesh {
                         let y: f32 = parts.next().ok_or("Incorrect file format")?.parse()?;
                         let z: f32 = parts.next().ok_or("Incorrect file format")?.parse()?;
                         vertices.push(Vector3::new(x, y, z));
-                    },
+                    }
                     "f" => {
                         let a: usize = parts.next().ok_or("Incorrect file format")?.parse()?;
                         let b: usize = parts.next().ok_or("Incorrect file format")?.parse()?;
                         let c: usize = parts.next().ok_or("Incorrect file format")?.parse()?;
                         faces.push([a - 1, b - 1, c - 1]);
-                    },
+                    }
                     // Ignore all other lines
-                    _ => { }
+                    _ => {}
                 }
             }
         }
@@ -82,7 +82,7 @@ impl Mesh {
             vertices,
             faces,
             aabb_corner,
-            aabb_size
+            aabb_size,
         })
     }
 }

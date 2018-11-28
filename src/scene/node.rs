@@ -1,6 +1,6 @@
 use geometry::{Primitive, Ray};
-use nalgebra::{clamp, distance_squared, Affine3, Matrix3, Matrix4, Vector3, U3};
-use scene::{Color, Intersection, Light};
+use nalgebra::{clamp, distance_squared, Affine3, Matrix4, Vector3};
+use scene::{Color, Intersection};
 use Raytracer;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -62,7 +62,7 @@ fn calculate_phong_lighting(
     kd: &Color,
     ks: &Color,
     shininess: &f32,
-    ray: &Ray,
+    _ray: &Ray,
     raytracer: &Raytracer,
     intersect: &Intersection,
 ) -> Color {
@@ -87,16 +87,16 @@ fn calculate_phong_lighting(
 
         let shadow_multiplier = shadow_rays_hit as f32 / total_shadow_rays as f32;
 
-        let mut L = light.position - intersect_point;
-        let L_norm = L.norm();
-        L = L.normalize();
+        let mut l = light.position - intersect_point;
+        let l_norm = l.norm();
+        l = l.normalize();
 
-        let Ldotn = clamp(L.dot(&n), 0.0f32, 1.0f32);
-        let r = ((2.0f32 * Ldotn * n) - L).normalize();
+        let ldotn = clamp(l.dot(&n), 0.0f32, 1.0f32);
+        let r = ((2.0f32 * ldotn * n) - l).normalize();
         let rdotv = clamp(r.dot(&v), 0.0f32, 1.0f32);
         let attenuation =
-            light.falloff[0] + (light.falloff[1] * L_norm) + (light.falloff[2] * L_norm * L_norm);
-        let light_sum = (kd * Ldotn * light.color) + (ks * rdotv.powf(*shininess) * light.color);
+            light.falloff[0] + (light.falloff[1] * l_norm) + (light.falloff[2] * l_norm * l_norm);
+        let light_sum = (kd * ldotn * light.color) + (ks * rdotv.powf(*shininess) * light.color);
         final_color = final_color + (shadow_multiplier * (light_sum / attenuation));
     }
 
@@ -173,13 +173,15 @@ impl Intersect for SceneNode {
             .map(|child| child.unwrap())
             .fold(None, |min, child| match min {
                 None => Some(child),
-                Some(cmin) => Some(if distance_squared(&cmin.point, &transformed_ray.src)
-                    < distance_squared(&child.point, &transformed_ray.src)
-                {
-                    cmin
-                } else {
-                    child
-                }),
+                Some(cmin) => Some(
+                    if distance_squared(&cmin.point, &transformed_ray.src)
+                        < distance_squared(&child.point, &transformed_ray.src)
+                    {
+                        cmin
+                    } else {
+                        child
+                    },
+                ),
             });
 
         match (self_collides, min) {
@@ -193,7 +195,8 @@ impl Intersect for SceneNode {
                     a
                 } else {
                     b
-                }).apply_transform(&self.transform, &self.inv_transform),
+                })
+                .apply_transform(&self.transform, &self.inv_transform),
             ),
         }
     }

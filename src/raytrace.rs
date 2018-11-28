@@ -1,38 +1,38 @@
 use super::geometry::Ray;
-use image::{save_buffer, RGB, Rgb};
-use nalgebra::{convert, U3, Rotation3, Affine3, Isometry, Point3, Vector3};
-use rand::{thread_rng, Rng};
-use scene::{Color, Intersect, Light, SceneNode};
-use rayon::prelude::*;
-use std::slice;
-use std::sync::Mutex;
-use std::time::Duration;
-use std::sync::Arc;
-use std::sync::atomic::{Ordering, AtomicUsize};
-use std::thread;
+use image::{save_buffer, Rgb, RGB};
+use nalgebra::{convert, Affine3, Isometry, Point3, Rotation3, Vector3, U3};
 use pbr::ProgressBar;
+use rand::{thread_rng, Rng};
+use rayon::prelude::*;
+use scene::{Color, Intersect, Light, SceneNode};
+use std::slice;
+use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
 type Isometry3<N> = Isometry<N, U3, Rotation3<f32>>;
 
-pub struct TracingOptions {
-    super_sampling: bool,
-    shadow_rays: bool,
-    texture_mapping: bool,
-    phong_lighting: bool,
-    num_threads: u16,
-}
+// TODO: Tracing Options
+// pub struct TracingOptions {
+//     super_sampling: bool,
+//     shadow_rays: bool,
+//     texture_mapping: bool,
+//     phong_lighting: bool,
+//     num_threads: u16,
+// }
 
-impl Default for TracingOptions {
-    fn default() -> TracingOptions {
-        TracingOptions {
-            super_sampling: true,
-            shadow_rays: true,
-            texture_mapping: true,
-            phong_lighting: true,
-            num_threads: 1,
-        }
-    }
-}
+// impl Default for TracingOptions {
+//     fn default() -> TracingOptions {
+//         TracingOptions {
+//             super_sampling: true,
+//             shadow_rays: true,
+//             texture_mapping: true,
+//             phong_lighting: true,
+//             num_threads: 1,
+//         }
+//     }
+// }
 
 pub struct Raytracer {
     pub root_node: SceneNode,
@@ -67,7 +67,7 @@ const Z_NEAR: f32 = -1.0;
 
 impl Raytracer {
     // Ray trace and save a specific image
-    pub fn render(&self, file_name: &str, width: u32, height: u32, options: TracingOptions) {
+    pub fn render(&self, file_name: &str, width: u32, height: u32/*, options: TracingOptions*/) {
         let view_matrix: Affine3<f32> =
             convert(Isometry3::look_at_rh(&self.eye, &self.view, &self.up));
 
@@ -97,28 +97,32 @@ impl Raytracer {
             pb.finish_print(&completion_string);
         });
 
-        let image_pixels: Vec<Rgb<u8>> = (0..pixel_count).into_par_iter()
+        let image_pixels: Vec<Rgb<u8>> = (0..pixel_count)
+            .into_par_iter()
             .map(|i| {
                 let x = i % height;
                 let y = i / width;
                 let fx = x as f32 + 0.5;
                 let fy = y as f32 + 0.5;
-                let pixel_vec = view_matrix * Vector3::new(
-                    Z_NEAR * ((fx / fw) - 0.5) * side * fw / fh,
-                    Z_NEAR * -((fy / fh) - 0.5) * side,
-                    Z_NEAR,
-                );
+                let pixel_vec = view_matrix
+                    * Vector3::new(
+                        Z_NEAR * ((fx / fw) - 0.5) * side * fw / fh,
+                        Z_NEAR * -((fy / fh) - 0.5) * side,
+                        Z_NEAR,
+                    );
                 let ray = Ray::new(self.eye, pixel_vec);
                 let color = self.trace_ray(width, height, &ray, x, y);
                 pixels_rendered.fetch_add(1, Ordering::Relaxed);
                 color.as_rgb()
-            }).collect();
+            })
+            .collect();
 
         // ENTERING SCARY ZONE, DON'T ASK QUESTIONS
         let transmuted_pixels = unsafe {
             slice::from_raw_parts(image_pixels.as_ptr() as *mut u8, (pixel_count * 3) as usize)
         };
-        save_buffer(file_name, transmuted_pixels, width, height, RGB(8)).unwrap()
+        save_buffer(file_name, transmuted_pixels, width, height, RGB(8)).unwrap();
+        progress_thread.join().unwrap();
     }
 
     fn trace_ray(&self, width: u32, height: u32, ray: &Ray, x: u32, y: u32) -> Color {
@@ -130,8 +134,8 @@ impl Raytracer {
     }
 }
 
-fn get_background_color(x: u32, y: u32, width: u32, height: u32) -> Color {
-    let fw = width as f32;
+fn get_background_color(_x: u32, y: u32, _width: u32, height: u32) -> Color {
+    // let fw = width as f32;
     let fh = height as f32;
     let r_rate = 67.0f32 / 255.;
     let g_rate = 133.0f32 / 255.;

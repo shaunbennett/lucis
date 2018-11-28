@@ -17,7 +17,8 @@ impl Add for Color {
             r: self.r + rhs.r,
             g: self.g + rhs.g,
             b: self.b + rhs.b,
-        }.clamp()
+        }
+        .clamp()
     }
 }
 
@@ -29,7 +30,8 @@ impl Mul for Color {
             r: self.r * rhs.r,
             g: self.g * rhs.g,
             b: self.b * rhs.b,
-        }.clamp()
+        }
+        .clamp()
     }
 }
 
@@ -41,7 +43,8 @@ impl Mul<Color> for f32 {
             r: self * rhs.r,
             g: self * rhs.g,
             b: self * rhs.b,
-        }.clamp()
+        }
+        .clamp()
     }
 }
 
@@ -53,7 +56,8 @@ impl<'a, 'b> Mul<&'b Vector3<f32>> for &'a Color {
             r: self.r * rhs.x,
             g: self.g * rhs.y,
             b: self.b * rhs.z,
-        }.clamp()
+        }
+        .clamp()
     }
 }
 
@@ -65,7 +69,8 @@ impl<'a> Mul<f32> for &'a Color {
             r: self.r * rhs,
             g: self.g * rhs,
             b: self.b * rhs,
-        }.clamp()
+        }
+        .clamp()
     }
 }
 
@@ -77,7 +82,8 @@ impl Div<f32> for Color {
             r: self.r / rhs,
             g: self.g / rhs,
             b: self.b / rhs,
-        }.clamp()
+        }
+        .clamp()
     }
 }
 

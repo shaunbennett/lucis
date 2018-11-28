@@ -1,6 +1,6 @@
+use geometry::Mesh;
 use geometry::Ray;
 use nalgebra::{dot, Unit, Vector3};
-use geometry::Mesh;
 use roots::find_roots_quadratic;
 use roots::Roots;
 
@@ -10,7 +10,6 @@ const CONE_EPS: f32 = 0.001;
 const CUBE_EPS: f32 = 0.0001;
 const CLOSE_EPS: f32 = 0.001;
 const TRIANGLE_EPS: f32 = 0.0000001;
-
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Primitive {
@@ -37,12 +36,12 @@ impl Primitive {
 
 fn aabb_collides(ray: &Ray, pos: &Vector3<f32>, size: &Vector3<f32>, t_value: &mut f32) -> bool {
     let inv_dir = Vector3::new(1.0 / ray.dir[0], 1.0 / ray.dir[1], 1.0 / ray.dir[2]);
-    let (mut tmin, mut tmax, mut tymin, mut tymax, mut tzmin, mut tzmax, mut tmp) = (0.0f32, 0.0f32, 0.0f32, 0.0f32, 0.0f32, 0.0f32, 0.0f32);
+    let mut tmp;
 
-    tmin = (pos.x - ray.src.x) * inv_dir.x;
-    tmax = ((pos.x + size.x) - ray.src.x) * inv_dir.x;
-    tymin = (pos.y - ray.src.y) * inv_dir.y;
-    tymax = ((pos.y + size.y) - ray.src.y) * inv_dir.y;
+    let mut tmin = (pos.x - ray.src.x) * inv_dir.x;
+    let mut tmax = ((pos.x + size.x) - ray.src.x) * inv_dir.x;
+    let mut tymin = (pos.y - ray.src.y) * inv_dir.y;
+    let mut tymax = ((pos.y + size.y) - ray.src.y) * inv_dir.y;
 
     if tmin > tmax {
         tmp = tmin;
@@ -66,8 +65,8 @@ fn aabb_collides(ray: &Ray, pos: &Vector3<f32>, size: &Vector3<f32>, t_value: &m
         tmax = tymax;
     }
 
-    tzmin = (pos.z - ray.src.z) * inv_dir.z;
-    tzmax = ((pos.z + size.z) - ray.src.z) * inv_dir.z;
+    let mut tzmin = (pos.z - ray.src.z) * inv_dir.z;
+    let mut tzmax = ((pos.z + size.z) - ray.src.z) * inv_dir.z;
     if tzmin > tzmax {
         tmp = tzmin;
         tzmin = tzmax;
@@ -100,7 +99,12 @@ fn close(a: f32, b: f32) -> bool {
 }
 
 fn cube_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
-    if aabb_collides(ray, &Vector3::new(0.0, 0.0, 0.0), &Vector3::new(1.0, 1.0, 1.0), t_value) {
+    if aabb_collides(
+        ray,
+        &Vector3::new(0.0, 0.0, 0.0),
+        &Vector3::new(1.0, 1.0, 1.0),
+        t_value,
+    ) {
         let collision_point = ray.src + (*t_value * ray.dir);
         // decide which side the point is on
         if close(collision_point.x, 0.0) {
@@ -125,16 +129,16 @@ fn cube_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> boo
 
 fn sphere_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
     // Check if circle collides with unit sphere
-    let L = &ray.src.coords;
+    let l = &ray.src.coords;
     let udir: Unit<Vector3<f32>> = ray.unit_dir();
     let dir = udir.as_ref();
     let a = dot(dir, dir);
-    let b = 2.0f32 * dot(L, dir);
-    let c = dot(L, L) - 1.0f32;
+    let b = 2.0f32 * dot(l, dir);
+    let c = dot(l, l) - 1.0f32;
 
     let closest_root = match find_roots_quadratic(a, b, c) {
         Roots::One([r1]) => r1,
-        Roots::Two([r1, r2]) => r1,
+        Roots::Two([r1, _]) => r1,
         _ => return false,
     };
 
@@ -147,7 +151,12 @@ fn sphere_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> b
     }
 }
 
-fn triangle_collides(ray: &Ray, triangle: &[Vector3<f32>; 3], t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
+fn triangle_collides(
+    ray: &Ray,
+    triangle: &[Vector3<f32>; 3],
+    t_value: &mut f32,
+    normal: &mut Vector3<f32>,
+) -> bool {
     let edge1 = triangle[1] - triangle[0];
     let edge2 = triangle[2] - triangle[0];
 
@@ -174,7 +183,7 @@ fn triangle_collides(ray: &Ray, triangle: &[Vector3<f32>; 3], t_value: &mut f32,
     *t_value = edge2.dot(&r);
 
     if *t_value < TRIANGLE_EPS {
-        return false
+        return false;
     }
 
     *normal = face_normal;
@@ -197,20 +206,20 @@ fn cone_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> boo
             } else {
                 return false;
             }
-        },
-        Roots::Two([r1, r2]) => {
+        }
+        Roots::Two([r1, _r2]) => {
             let i_1 = &ray.src + (r1 * &ray.dir);
             if i_1.y >= 0.0 && i_1.y <= 1.0 {
                 r1
             } else {
                 return false;
             }
-        },
-        _ => return false
+        }
+        _ => return false,
     };
 
     if closest_root > CONE_EPS {
-        let intersection_point = &ray.src + (closest_root * &ray.dir);
+        let _intersection_point = &ray.src + (closest_root * &ray.dir);
         *t_value = closest_root;
         *normal = Vector3::new(0.0f32, 0.0f32, 1.0f32);
         true
@@ -238,7 +247,7 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
             } else {
                 return false;
             }
-        },
+        }
         Roots::Two([r1, r2]) => {
             let i_1 = &ray.src + (r1 * &ray.dir);
             let i_2 = &ray.src + (r2 * &ray.dir);
@@ -260,14 +269,14 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
             } else if y1 > 1.0 {
                 // Hit the top cap
                 intercept_cap = true;
-                (1.0-src.y) / dir.y
+                (1.0 - src.y) / dir.y
             } else {
                 // Hit both caps
                 // TODO
                 return false;
             }
-        },
-        _ => return false
+        }
+        _ => return false,
     };
 
     if closest_root > CYLINDER_EPS {
@@ -286,7 +295,7 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
 
 fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
     if !aabb_collides(ray, &mesh.aabb_corner, &mesh.aabb_size, t_value) {
-        return false
+        return false;
     }
 
     let mut smallest_t = -1.0f32;

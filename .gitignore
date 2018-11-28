@@ -14,3 +14,8 @@ Cargo.lock
 
 # IntelliJ
 .idea
+
+animation
+
+# macOS
+.DS_Store

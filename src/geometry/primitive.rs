@@ -3,6 +3,7 @@ use geometry::Ray;
 use nalgebra::{dot, Unit, Vector3};
 use roots::find_roots_quadratic;
 use roots::Roots;
+use std::f32;
 
 const SPHERE_EPS: f32 = 0.0001;
 const CYLINDER_EPS: f32 = 0.0001;
@@ -200,7 +201,7 @@ fn cone_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> boo
 
     let closest_root = match find_roots_quadratic(a, b, c) {
         Roots::One([r1]) => {
-            let i_1 = &ray.src + (r1 * &ray.dir);
+            let i_1 = ray.src + (r1 * ray.dir);
             if i_1.y >= 0.0 && i_1.y <= 1.0 {
                 r1
             } else {
@@ -208,7 +209,7 @@ fn cone_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> boo
             }
         }
         Roots::Two([r1, _r2]) => {
-            let i_1 = &ray.src + (r1 * &ray.dir);
+            let i_1 = ray.src + (r1 * ray.dir);
             if i_1.y >= 0.0 && i_1.y <= 1.0 {
                 r1
             } else {
@@ -219,7 +220,7 @@ fn cone_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> boo
     };
 
     if closest_root > CONE_EPS {
-        let _intersection_point = &ray.src + (closest_root * &ray.dir);
+        let _intersection_point = ray.src + (closest_root * ray.dir);
         *t_value = closest_root;
         *normal = Vector3::new(0.0f32, 0.0f32, 1.0f32);
         true
@@ -241,7 +242,7 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
     let mut cap_normal = Vector3::new(0.0, 1.0, 0.0);
     let closest_root = match find_roots_quadratic(a, b, c) {
         Roots::One([r1]) => {
-            let i_1 = &ray.src + (r1 * &ray.dir);
+            let i_1 = ray.src + (r1 * ray.dir);
             if i_1.y >= 0.0 && i_1.y <= 1.0 {
                 r1
             } else {
@@ -249,8 +250,8 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
             }
         }
         Roots::Two([r1, r2]) => {
-            let i_1 = &ray.src + (r1 * &ray.dir);
-            let i_2 = &ray.src + (r2 * &ray.dir);
+            let i_1 = ray.src + (r1 * ray.dir);
+            let i_2 = ray.src + (r2 * ray.dir);
             // Although r1 <= r2, no guarantees about y1 and y2
             let y1 = i_1.y;
             let y2 = i_2.y;
@@ -280,7 +281,7 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
     };
 
     if closest_root > CYLINDER_EPS {
-        let intersection_point = &ray.src + (closest_root * &ray.dir);
+        let intersection_point = ray.src + (closest_root * ray.dir);
         *t_value = closest_root;
         if intercept_cap {
             *normal = cap_normal;
@@ -298,7 +299,7 @@ fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3
         return false;
     }
 
-    let mut smallest_t = -1.0f32;
+    let mut smallest_t = f32::MAX;
     let mut smallest_normal = Vector3::new(0.0f32, 0.0f32, 0.0f32);
     let mut triangle = [smallest_normal, smallest_normal, smallest_normal];
 
@@ -308,7 +309,7 @@ fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3
         triangle[2] = mesh.vertices[face[2]];
 
         if triangle_collides(ray, &triangle, t_value, normal) {
-            if smallest_t == -1.0 || *t_value < smallest_t {
+            if *t_value < smallest_t {
                 smallest_t = *t_value;
                 smallest_normal = *normal;
             }
@@ -317,5 +318,5 @@ fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3
 
     *normal = smallest_normal;
     *t_value = smallest_t;
-    smallest_t != -1.0
+    smallest_t < f32::MAX
 }

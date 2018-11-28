@@ -3,7 +3,7 @@
 ### Core
 - [x] Can output an image
 - [x] Scenes can be loaded through lua files
-- [ ] Can specify lua file through command line argument
+- [x] Can specify lua file through command line argument
 - [x] Can load an obj file into a Mesh structure
 - [ ] Configuration can be loaded through lua
 - [ ] Errors (i.e. lua issues) are passed up through Result and handled
@@ -13,13 +13,13 @@
 - [x] Spheres can be rendered
 - [x] Cubes can be rendered
 - [x] Meshes can be rendered
-- [ ] Cylinders can be rendered (WIP)
-- [ ] Cones can be rendered
+- [x] Cylinders can be rendered
+- [ ] Cones can be rendered (Need Normals)
 - [x] Phong lighting is implemented
 - [x] Shadow rays for simple shadows
 - [ ] Supersampling (for AA)
 - [ ] Texture Mapping
-- [ ] L-System modelling
+- [ ] L-System modelling (See [here](https://github.com/shaunbennett/lindenmayer))
 - [ ] Bump Mapping
 - [x] Soft shadow lighting
 - [ ] Spotlight based lighting

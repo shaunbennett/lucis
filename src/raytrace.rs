@@ -67,7 +67,12 @@ const Z_NEAR: f32 = -1.0;
 
 impl Raytracer {
     // Ray trace and save a specific image
-    pub fn render(&self, file_name: &str, width: u32, height: u32/*, options: TracingOptions*/) {
+    pub fn render(
+        &self,
+        file_name: &str,
+        width: u32,
+        height: u32, /*, options: TracingOptions*/
+    ) {
         let view_matrix: Affine3<f32> =
             convert(Isometry3::look_at_rh(&self.eye, &self.view, &self.up));
 
@@ -139,16 +144,17 @@ fn get_background_color(_x: u32, y: u32, _width: u32, height: u32) -> Color {
     let fh = height as f32;
     let r_rate = 67.0f32 / 255.;
     let g_rate = 133.0f32 / 255.;
-    let b_rate = 255.0f32 / 255.;
+    let b_rate = 1.0f32;
     let height_rate = f32::max(0.0f32, (y as f32 / fh) - 0.2f32);
 
     if height_rate <= 0.35 {
-        let mut rand_chance = 0.005f32;
-        if height_rate >= 0.05 {
+        let rand_chance = if height_rate >= 0.05 {
             let reverse_height = 0.4f32 - height_rate;
             let percent = reverse_height / 0.35f32;
-            rand_chance = percent * 0.003f32;
-        }
+            percent * 0.003f32
+        } else {
+            0.005f32
+        };
 
         let mut rng = thread_rng();
         let render_star: f32 = rng.gen();
@@ -162,9 +168,9 @@ fn get_background_color(_x: u32, y: u32, _width: u32, height: u32) -> Color {
         }
     }
 
-    return Color::new(
+    Color::new(
         r_rate * height_rate,
         g_rate * height_rate,
         b_rate * height_rate,
-    );
+    )
 }

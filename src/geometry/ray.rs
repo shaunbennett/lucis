@@ -23,7 +23,7 @@ impl Mul<Ray> for Affine3<f32> {
 impl Ray {
     pub fn new(src: Point3<f32>, dir: Vector3<f32>) -> Ray {
         Ray {
-            src: src,
+            src,
             dir: dir.normalize(),
         }
     }

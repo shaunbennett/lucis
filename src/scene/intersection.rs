@@ -13,7 +13,7 @@ pub struct Intersection<'a> {
 
 impl<'a> PartialOrd for Intersection<'a> {
     fn partial_cmp(&self, other: &Intersection) -> Option<Ordering> {
-        return self.t_value.partial_cmp(&other.t_value);
+        self.t_value.partial_cmp(&other.t_value)
     }
 }
 

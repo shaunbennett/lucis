@@ -61,7 +61,7 @@ pub enum Material {
 fn calculate_phong_lighting(
     kd: &Color,
     ks: &Color,
-    shininess: &f32,
+    shininess: f32,
     _ray: &Ray,
     raytracer: &Raytracer,
     intersect: &Intersection,
@@ -78,7 +78,7 @@ fn calculate_phong_lighting(
         for p in light.light_samples.iter() {
             let shadow_ray = Ray::new_from_points(intersect_point, *p);
             if raytracer.root_node.intersects(&shadow_ray).is_none() {
-                shadow_rays_hit = shadow_rays_hit + 1;
+                shadow_rays_hit += 1;
             }
         }
         if shadow_rays_hit == 0 {
@@ -96,11 +96,11 @@ fn calculate_phong_lighting(
         let rdotv = clamp(r.dot(&v), 0.0f32, 1.0f32);
         let attenuation =
             light.falloff[0] + (light.falloff[1] * l_norm) + (light.falloff[2] * l_norm * l_norm);
-        let light_sum = (kd * ldotn * light.color) + (ks * rdotv.powf(*shininess) * light.color);
+        let light_sum = (kd * ldotn * light.color) + (ks * rdotv.powf(shininess) * light.color);
         final_color = final_color + (shadow_multiplier * (light_sum / attenuation));
     }
 
-    return final_color;
+    final_color
 }
 
 impl Material {
@@ -111,7 +111,7 @@ impl Material {
     pub fn get_color(&self, ray: &Ray, raytracer: &Raytracer, intersect: &Intersection) -> Color {
         match self {
             Material::PhongMaterial { kd, ks, shininess } => {
-                calculate_phong_lighting(kd, ks, shininess, ray, raytracer, intersect)
+                calculate_phong_lighting(kd, ks, *shininess, ray, raytracer, intersect)
             }
             Material::None => Color::new(0.0, 0.0, 0.0),
         }
@@ -134,11 +134,11 @@ pub struct SceneNode {
 impl SceneNode {
     pub fn new(id: u32, name: String) -> SceneNode {
         SceneNode {
-            id: id,
+            id,
             children: Vec::new(),
             transform: Affine3::identity(),
             inv_transform: Affine3::identity(),
-            name: name,
+            name,
             material: Material::None,
             primitive: Primitive::None,
         }

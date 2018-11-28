@@ -6,9 +6,10 @@ use std::env;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
-    let mut file_name = "scene/test2.lua";
-    if args.len() > 1 {
-        file_name = &args[1];
-    }
+    let file_name = if args.len() > 1 {
+        &args[1]
+    } else {
+        "scene/test2.lua"
+    };
     run_lua_script(file_name);
 }

@@ -2,6 +2,7 @@ use geometry::{Mesh, Primitive};
 use nalgebra::{Point3, Vector3};
 use rlua::{Function, Lua, Result, Table, UserData, UserDataMethods};
 use scene::{Color, Light, Material, SceneNode};
+use geometry::volume::{BoxParams,VolumetricSolid,VolumeEffect,Volume};
 use std::fs::File;
 use std::io::prelude::*;
 use Raytracer;
@@ -116,6 +117,15 @@ fn render(
     for i in 1..=lights.raw_len() {
         lights_vec.push(lights.raw_get(i).unwrap());
     }
+
+    let mut volumes: Vec<VolumetricSolid> = Vec::new();
+    volumes.push(VolumetricSolid::new(
+        Volume::Box(BoxParams{
+            pos: Vector3::new(0.0f32,0.0,0.0),
+            size: Vector3::new(10.0f32,10.0f32,10.0f32)
+        }),
+        VolumeEffect::Fog(Color::new(0.0, 1.0, 0.0))
+    ));
     let raytracer = Raytracer {
         root_node: node,
         eye: Point3::new(
@@ -136,6 +146,7 @@ fn render(
         fov_y: fov,
         ambient: Color::new(0.2, 0.2, 0.2),
         lights: lights_vec,
+        volumes
     };
     println!("Rendering {}", file_name);
     raytracer.render(file_name.as_ref(), width, height);

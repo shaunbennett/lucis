@@ -2,7 +2,7 @@ use nalgebra::{Affine3, Point3, Vector3, U3};
 use scene::SceneNode;
 use std::cmp::Ordering;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Intersection<'a> {
     // The t value for the ray where this collision occured. Can be used to calculate the intersection point
     pub t_value: f32,

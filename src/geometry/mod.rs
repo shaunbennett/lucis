@@ -1,7 +1,7 @@
 mod mesh;
 mod primitive;
 mod ray;
-mod volume;
+pub mod volume;
 
 pub use self::mesh::Mesh;
 pub use self::primitive::Primitive;

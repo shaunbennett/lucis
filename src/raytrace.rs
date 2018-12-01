@@ -10,6 +10,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
+use geometry::volume::{VolumetricSolid,Volume,VolumeEffect,BoxParams};
 
 type Isometry3<N> = Isometry<N, U3, Rotation3<f32>>;
 
@@ -46,6 +47,7 @@ pub struct Raytracer {
     // Lighting
     pub ambient: Color,
     pub lights: Vec<Light>,
+    pub volumes: Vec<VolumetricSolid>,
 }
 
 impl Default for Raytracer {
@@ -59,6 +61,7 @@ impl Default for Raytracer {
             fov_y: 30.,
             ambient: Color::new(0.0, 0.0, 0.0),
             lights: Vec::new(),
+            volumes: Vec::new(),
         }
     }
 }
@@ -133,7 +136,14 @@ impl Raytracer {
     fn trace_ray(&self, width: u32, height: u32, ray: &Ray, x: u32, y: u32) -> Color {
         let collision = self.root_node.intersects(ray);
         match collision {
-            Some(c) => c.node.material.get_color(ray, self, &c),
+            Some(c) => {
+                let mut color = c.node.material.get_color(ray, self, &c);
+                for volume in self.volumes.iter() {
+                    // TODO: don't do this
+                    color = volume.apply(ray, &collision, color)
+                }
+                color
+            },
             None => get_background_color(x, y, width, height),
         }
     }

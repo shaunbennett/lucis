@@ -4,11 +4,11 @@ use nalgebra::{dot, Unit, Vector3};
 use roots::find_roots_quadratic;
 use roots::Roots;
 use std::f32;
+use super::aabb_collision;
 
 const SPHERE_EPS: f32 = 0.0001;
 const CYLINDER_EPS: f32 = 0.0001;
 const CONE_EPS: f32 = 0.001;
-const CUBE_EPS: f32 = 0.0001;
 const CLOSE_EPS: f32 = 0.001;
 const TRIANGLE_EPS: f32 = 0.0000001;
 
@@ -35,64 +35,6 @@ impl Primitive {
     }
 }
 
-fn aabb_collides(ray: &Ray, pos: &Vector3<f32>, size: &Vector3<f32>, t_value: &mut f32) -> bool {
-    let inv_dir = Vector3::new(1.0 / ray.dir[0], 1.0 / ray.dir[1], 1.0 / ray.dir[2]);
-    let mut tmp;
-
-    let mut tmin = (pos.x - ray.src.x) * inv_dir.x;
-    let mut tmax = ((pos.x + size.x) - ray.src.x) * inv_dir.x;
-    let mut tymin = (pos.y - ray.src.y) * inv_dir.y;
-    let mut tymax = ((pos.y + size.y) - ray.src.y) * inv_dir.y;
-
-    if tmin > tmax {
-        tmp = tmin;
-        tmin = tmax;
-        tmax = tmp;
-    }
-
-    if tymin > tymax {
-        tmp = tymin;
-        tymin = tymax;
-        tymax = tmp;
-    }
-
-    if (tmin > tymax) || (tymin > tmax) {
-        return false;
-    }
-    if tymin > tmin {
-        tmin = tymin;
-    }
-    if tymax < tmax {
-        tmax = tymax;
-    }
-
-    let mut tzmin = (pos.z - ray.src.z) * inv_dir.z;
-    let mut tzmax = ((pos.z + size.z) - ray.src.z) * inv_dir.z;
-    if tzmin > tzmax {
-        tmp = tzmin;
-        tzmin = tzmax;
-        tzmax = tmp;
-    }
-
-    if (tmin > tzmax) || (tzmin > tmax) {
-        return false;
-    }
-    if tzmin > tmin {
-        tmin = tzmin;
-    }
-    if tzmax < tmax {
-        tmax = tzmax;
-    }
-
-    if tmin <= CUBE_EPS {
-        if tmax <= CUBE_EPS {
-            return false;
-        }
-        tmin = tmax;
-    }
-    *t_value = tmin;
-    true
-}
 
 fn close(a: f32, b: f32) -> bool {
     let diff = (a - b).abs();
@@ -100,12 +42,14 @@ fn close(a: f32, b: f32) -> bool {
 }
 
 fn cube_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
-    if aabb_collides(
-        ray,
-        &Vector3::new(0.0, 0.0, 0.0),
-        &Vector3::new(1.0, 1.0, 1.0),
-        t_value,
-    ) {
+    let roots = aabb_collision(ray, &Vector3::new(0.0, 0.0, 0.0), &Vector3::new(1.0, 1.0, 1.0));
+
+    *t_value = match roots {
+        Roots::Two([t1, _]) => t1,
+        Roots::One([t1]) => t1,
+        _ => return false
+    };
+
         let collision_point = ray.src + (*t_value * ray.dir);
         // decide which side the point is on
         if close(collision_point.x, 0.0) {
@@ -122,10 +66,7 @@ fn cube_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> boo
             *normal = Vector3::new(0.0, 0.0, 1.0);
         }
 
-        return true;
-    }
-
-    false
+        true
 }
 
 fn sphere_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
@@ -295,7 +236,7 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
 }
 
 fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
-    if !aabb_collides(ray, &mesh.aabb_corner, &mesh.aabb_size, t_value) {
+    if aabb_collision(ray, &mesh.aabb_corner, &mesh.aabb_size) == Roots::No([]) {
         return false;
     }
 

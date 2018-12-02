@@ -121,8 +121,8 @@ fn render(
     let mut volumes: Vec<VolumetricSolid> = Vec::new();
     volumes.push(VolumetricSolid::new(
         Volume::Box(BoxParams{
-            pos: Vector3::new(0.0f32,0.0,0.0),
-            size: Vector3::new(10.0f32,10.0f32,10.0f32)
+            pos: Vector3::new(-30.0f32,-30.0,-30.0),
+            size: Vector3::new(100.0f32,31.0f32,100.0f32)
         }),
         VolumeEffect::Fog(Color::new(0.0, 1.0, 0.0))
     ));

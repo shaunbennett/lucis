@@ -59,18 +59,24 @@ impl VolumeEffect {
 
 fn fog_apply(fog_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &VolumeIntersection, curr_color: Color) -> Color {
     // Do calculation to apply fog effect
-    let fog_amount = 0.4f32;
-
-    match ri {
+    let fog_amount = match ri {
         Some(ray_i) => {
             // Caluclate time in fog
-
-
+            let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
+            let i2 = ray.src + (ray_i.t_value * ray.dir);
+            let distance = nalgebra::distance(&i1, &i2);
+            println!("Distance: {}", distance);
+            distance * 0.01
         },
         None => {
-
+            let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
+            let i2 = ray.src + (vi.t_leave * ray.dir);
+            let distance = nalgebra::distance(&i1, &i2);
+            distance * 0.01
         }
-    }
+    }.max(0.0).min(1.0);
+
+    println!("Fog Amount: {}", fog_amount);
 
     (fog_amount * fog_color) + ((1.0-fog_amount) * curr_color)
 }
@@ -103,6 +109,7 @@ fn box_passes_through(b: &BoxParams, ray: &Ray) -> Option<VolumeIntersection> {
 
     match roots {
         Roots::Two([t1, t2]) => Some(VolumeIntersection::new(t1, t2)),
+        Roots::One([t1]) => Some(VolumeIntersection::new(0.0f32, t1)),
         _ => None
     }
 }

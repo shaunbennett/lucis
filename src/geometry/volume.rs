@@ -8,8 +8,7 @@ use super::aabb_collision;
 
 pub struct VolumetricSolid {
     volume: Volume,
-    effect: VolumeEffect,
-}
+    effect: VolumeEffect, }
 
 impl VolumetricSolid {
     pub fn new(volume: Volume, effect: VolumeEffect) -> VolumetricSolid {
@@ -62,21 +61,34 @@ fn fog_apply(fog_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &Volume
     let fog_amount = match ri {
         Some(ray_i) => {
             // Caluclate time in fog
-            let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
-            let i2 = ray.src + (ray_i.t_value * ray.dir);
-            let distance = nalgebra::distance(&i1, &i2);
-            println!("Distance: {}", distance);
-            distance * 0.01
+            let enter = vi.t_enter.max(0.0);
+            let leave = vi.t_leave;
+            let t_intersect = (ray_i.point - ray.src).x / ray.dir.x;
+
+            if enter >= t_intersect {
+                return curr_color
+            }
+
+            if leave < t_intersect {
+                let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
+                let i2 = ray.src + (vi.t_leave * ray.dir);
+                let distance = nalgebra::distance(&i1, &i2);
+                distance * 0.03
+            } else {
+                let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
+                let i2 = ray_i.point;
+                let distance = nalgebra::distance(&i1, &i2);
+                distance * 0.03
+            }
+
         },
         None => {
             let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
             let i2 = ray.src + (vi.t_leave * ray.dir);
             let distance = nalgebra::distance(&i1, &i2);
-            distance * 0.01
+            distance * 0.03
         }
     }.max(0.0).min(1.0);
-
-    println!("Fog Amount: {}", fog_amount);
 
     (fog_amount * fog_color) + ((1.0-fog_amount) * curr_color)
 }

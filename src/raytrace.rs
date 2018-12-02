@@ -144,7 +144,14 @@ impl Raytracer {
                 }
                 color
             },
-            None => get_background_color(x, y, width, height),
+            None => {
+                let mut color = get_background_color(x, y, width, height);
+                for volume in self.volumes.iter() {
+                    // TODO: don't do this
+                    color = volume.apply(ray, &collision, color)
+                }
+                color
+            }
         }
     }
 }

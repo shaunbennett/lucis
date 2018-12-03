@@ -108,8 +108,8 @@ impl Raytracer {
         let image_pixels: Vec<Rgb<u8>> = (0..pixel_count)
             .into_par_iter()
             .map(|i| {
-                let x = i % height;
-                let y = i / width;
+                let x = i % width;
+                let y = i / height;
                 let fx = x as f32 + 0.5;
                 let fy = y as f32 + 0.5;
                 let pixel_vec = view_matrix

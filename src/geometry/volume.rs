@@ -1,5 +1,5 @@
 use geometry::Ray;
-use nalgebra::{Vector3};
+use nalgebra::{distance,Vector3};
 use roots::Roots;
 use scene::{Intersection, Color};
 use super::aabb_collision;
@@ -72,12 +72,12 @@ fn fog_apply(fog_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &Volume
             if leave < t_intersect {
                 let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
                 let i2 = ray.src + (vi.t_leave * ray.dir);
-                let distance = nalgebra::distance(&i1, &i2);
+                let distance = distance(&i1, &i2);
                 distance * 0.03
             } else {
                 let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
                 let i2 = ray_i.point;
-                let distance = nalgebra::distance(&i1, &i2);
+                let distance = distance(&i1, &i2);
                 distance * 0.03
             }
 
@@ -85,7 +85,7 @@ fn fog_apply(fog_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &Volume
         None => {
             let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
             let i2 = ray.src + (vi.t_leave * ray.dir);
-            let distance = nalgebra::distance(&i1, &i2);
+            let distance = distance(&i1, &i2);
             distance * 0.03
         }
     }.max(0.0).min(1.0);

@@ -234,7 +234,7 @@ impl ConeParams {
         cone_params.scale(1.0, 15.0, 1.0);
         cone_params.rotate("x", -90.0);
         // cone_params.rotate("z", 45.0);
-        cone_params.rotate("y", 20.0);
+        cone_params.rotate("y", 25.0);
         cone_params.translate(1.5, 0.77, -12.2);
         // cone_params.translate(1.5, 0.77, -20.2);
 

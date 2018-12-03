@@ -9,7 +9,7 @@ tree_brown = rt.material({.325490196, .207843137, .039215686}, {0.0, 0.0, 0.0}, 
 tree_texture = rt.textured_material("texture/tree_texture.png", 1.0, 1.0, {0.0, 0.0, 0.0}, 0)
 ground_texture = rt.textured_material("texture/cracked.jpg", 0.2, 0.2, {0.0, 0.0, 0.0}, 0)
 
-light_gray = rt.material({0.5, 0.5, 0.5}, {0.0, 0.0, 0.0}, 0)
+light_gray = rt.material({0.3, 0.3, 0.3}, {0.0, 0.0, 0.0}, 0)
 dark_gray = rt.material({0.05, 0.05, 0.05}, {0.0, 0.0, 0.0}, 0)
 
 scene = rt.node('scene')
@@ -58,10 +58,10 @@ scene:add_child(person)
 scene:add_child(floor)
 
 -- The lights
-l1 = rt.light({10,30,10}, {0.6, 0.6, 0.6}, {1, 0.0005, 0})
-l1:set_soft(4, 32)
+l1 = rt.light({10,25,10}, {0.6, 0.6, 0.6}, {1, 0.0005, 0})
+l1:set_soft(4, 64)
 -- l2 = rt.light({0, 5, 30}, {0.8, 0.8, 0.8}, {1, 0.0005, 0})
 lights = { l1 }
 
-rt.render(scene, 'fog.png', 1920, 1200, {0.4,  5, 0}, {0.4, 6.0, -8}, {0, 1, 0}, 18, lights)
+rt.render(scene, 'fog.png', 3840, 3840, {0.4,  4.5, 1}, {0.4, 5.5, -8}, {0, 1, 0}, 30, lights)
 -- rt.render(scene, 'fog.png', 512, 512, {0,  0, 1}, {0, 0, -1}, {0, 1, 0}, 30, lights)

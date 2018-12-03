@@ -8,6 +8,10 @@ name = "lucis"
 path = "src/main.rs"
 doc = false
 
+[lib]
+name = "lucis"
+path = "src/lib.rs"
+
 [dependencies]
 image = "0.20.1"
 nalgebra = "0.16.10"

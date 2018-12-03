@@ -1,14 +1,22 @@
 use nalgebra::{Affine3, Point3, Vector3, U3};
 use scene::SceneNode;
-use std::cmp::Ordering;
+use std::cmp::{PartialEq, PartialOrd, Ordering};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Intersection<'a> {
     // The t value for the ray where this collision occured. Can be used to calculate the intersection point
     pub t_value: f32,
     pub point: Point3<f32>,
     pub node: &'a SceneNode,
     pub normal: Vector3<f32>,
+    pub u_value: f32,
+    pub v_value: f32,
+}
+
+impl<'a> PartialEq for Intersection<'a> {
+    fn eq(&self, other: &Intersection) -> bool {
+        self.t_value == other.t_value
+    }
 }
 
 impl<'a> PartialOrd for Intersection<'a> {
@@ -23,12 +31,16 @@ impl<'a> Intersection<'a> {
         point: Point3<f32>,
         node: &'a SceneNode,
         normal: Vector3<f32>,
+        u_value: f32,
+        v_value: f32,
     ) -> Intersection {
         Intersection {
             t_value,
             point,
             node,
             normal,
+            u_value,
+            v_value,
         }
     }
 
@@ -48,6 +60,8 @@ impl<'a> Intersection<'a> {
             point: transformed_point,
             node: self.node,
             normal: transformed_normal,
+            u_value: self.u_value,
+            v_value: self.v_value,
         }
     }
 }

@@ -92,6 +92,14 @@ impl Color {
         Color { r, g, b }
     }
 
+    pub fn from_rgb(rgb: &Rgb<u8>) -> Color {
+        Color {
+            r: rgb[0] as f32 / 255.0,
+            g: rgb[1] as f32 / 255.0,
+            b: rgb[2] as f32 / 255.0,
+        }
+    }
+
     pub fn as_rgb(&self) -> Rgb<u8> {
         Rgb([
             (self.r * 255.0).round() as u8,

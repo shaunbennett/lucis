@@ -23,10 +23,10 @@ pub enum Primitive {
 }
 
 impl Primitive {
-    pub fn collides(&self, ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
+    pub fn collides(&self, ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>, uv: &mut [f32;2]) -> bool {
         match self {
             Primitive::Sphere => sphere_collides(ray, t_value, normal),
-            Primitive::Cylinder => cylinder_collides(ray, t_value, normal),
+            Primitive::Cylinder => cylinder_collides(ray, t_value, normal, uv),
             Primitive::Cone => cone_collides(ray, t_value, normal),
             Primitive::Cube => cube_collides(ray, t_value, normal),
             Primitive::Mesh(mesh) => mesh_collides(ray, mesh, t_value, normal),
@@ -170,7 +170,7 @@ fn cone_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> boo
     }
 }
 
-fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
+fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>, uv: &mut [f32;2]) -> bool {
     let src = &ray.src;
     let dir = &ray.dir;
 
@@ -225,9 +225,16 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) ->
         let intersection_point = ray.src + (closest_root * ray.dir);
         *t_value = closest_root;
         if intercept_cap {
+            uv[0] = 0.0f32;
+            uv[1] = 0.0f32;
             *normal = cap_normal;
         } else {
             *normal = Vector3::new(intersection_point.x, 0.0f32, intersection_point.z);
+            let u = normal.x.atan2(normal.z) / f32::consts::PI + 2.0;//atan2(n.x, n.z) / (2*pi) + 0.5;
+            let v = intersection_point.y;//atan2(n.x, n.z) / (2*pi) + 0.5;
+            // println!("u: {}, v: {}", u, v);
+            (*uv)[0] = u;
+            (*uv)[1] = v;
         }
         true
     } else {

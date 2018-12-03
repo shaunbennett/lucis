@@ -9,6 +9,7 @@ mod intersection;
 mod light;
 mod lua;
 mod node;
+pub mod texture;
 
 pub use self::color::Color;
 pub use self::intersection::Intersection;

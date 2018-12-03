@@ -1,62 +1,23 @@
 use geometry::{Primitive, Ray};
 use nalgebra::{clamp, distance_squared, Affine3, Matrix4, Vector3};
 use scene::{Color, Intersection};
+use scene::texture::Texture;
 use Raytracer;
 
-#[derive(Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Clone)]
 pub enum Material {
     PhongMaterial {
         kd: Color,
         ks: Color,
         shininess: f32,
     },
+    PhongTexture {
+        ks: Color,
+        shininess: f32,
+        texture: Texture,
+    },
     None,
 }
-
-// glm::vec3 calculatePhongIllumination(const SceneNode &root, const glm::vec3 &eye, const Collision &collision, const glm::vec3 &ambient, const std::list<Light *> &lights) {
-// 	PhongMaterial *mat = static_cast<PhongMaterial*>(collision.geometryNode->m_material);
-
-// 	glm::vec3 nVec = glm::normalize(collision.normal);
-// 	glm::vec3 vVec = glm::normalize(eye - collision.collisionPoint);
-// 	// Db("---");
-// 	// Db("n: " << glm::to_string(nVec));
-// 	// Db("v: " << glm::to_string(vVec));
-
-// 	glm::vec3 diffuseColor;
-// 	if (collision.textureColor != glm::vec3(-1)) {
-// 		// Db("Custom color: " << glm::to_string(collision.textureColor));
-// 		diffuseColor = collision.textureColor;
-// 	} else {
-// 		diffuseColor = mat->m_kd;
-// 	}
-// 	glm::vec3 finalColor = diffuseColor * ambient;
-
-// 	for (Light *light : lights) {
-
-// 		// first we should check if the path from collision point to light is open
-// 		Ray shadowRay{collision.collisionPoint, light->position};
-// 		std::list<Collision> collisions;
-// 		if (root.collides(shadowRay, collisions)) continue;
-
-// 		glm::vec3 lVec = light->position - collision.collisionPoint;
-// 		float lLength = glm::length(lVec);
-// 		lVec = glm::normalize(lVec);
-
-// 		// Db("l: " << glm::to_string(lVec));
-// 		float ldotn = glm::clamp(glm::dot(lVec, nVec), 0.0f, 1.0f);
-// 		glm::vec3 rVec = glm::normalize((2 * ldotn * nVec) - lVec);
-// 		float rdotv = glm::clamp(glm::dot(rVec, vVec), 0.0f, 1.0f);
-// 		float attenuation = light->falloff[0] + (light->falloff[1] * lLength) + (light->falloff[2] * lLength * lLength);
-// 		glm::vec3 lightSum = (diffuseColor * ldotn * light->colour) + (mat->m_ks * glm::pow(rdotv, mat->m_shininess) * light->colour);
-// 		lightSum = lightSum / attenuation;
-// 		finalColor += lightSum;
-// 	}
-
-// 	// Db("---");
-// 	// Db(glm::to_string(finalColor));
-
-// 	return finalColor;
-// }
 
 fn calculate_phong_lighting(
     kd: &Color,
@@ -108,17 +69,25 @@ impl Material {
         Material::PhongMaterial { kd, ks, shininess }
     }
 
+    pub fn phong_texture(file_name: &str, u_max: f32, v_max: f32, ks: Color, shininess: f32) -> Material {
+        Material::PhongTexture { texture: Texture::load_texture(file_name, u_max, v_max), ks, shininess }
+    }
+
     pub fn get_color(&self, ray: &Ray, raytracer: &Raytracer, intersect: &Intersection) -> Color {
         match self {
             Material::PhongMaterial { kd, ks, shininess } => {
                 calculate_phong_lighting(kd, ks, *shininess, ray, raytracer, intersect)
-            }
+            },
+            Material::PhongTexture { ks, shininess, texture } => {
+                let kd = texture.get_color(intersect.u_value, intersect.v_value);
+                calculate_phong_lighting(&kd, ks, *shininess, ray, raytracer, intersect)
+            },
             Material::None => Color::new(0.0, 0.0, 0.0),
         }
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct SceneNode {
     pub id: u32,
     pub children: Vec<SceneNode>,
@@ -151,15 +120,18 @@ impl Intersect for SceneNode {
 
         let mut t_value: f32 = 0.0;
         let mut normal = Vector3::new(0.0f32, 0.0, 0.0);
+        let mut uv = [0.0, 0.0];
         let self_collides = if self
             .primitive
-            .collides(&transformed_ray, &mut t_value, &mut normal)
+            .collides(&transformed_ray, &mut t_value, &mut normal, &mut uv)
         {
             Some(Intersection::new(
                 t_value,
                 transformed_ray.src + (t_value * transformed_ray.dir.normalize()),
                 &self,
                 normal,
+                uv[0],
+                uv[1],
             ))
         } else {
             None

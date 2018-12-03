@@ -80,6 +80,20 @@ fn create_material(_: &Lua, (d, s, p): (Table, Table, f32)) -> Result<Material> 
     ))
 }
 
+fn create_textured_material(_: &Lua, (file_name, u_max, v_max, s, p): (String, f32, f32, Table, f32)) -> Result<Material> {
+    let sr: f32 = s.raw_get(1).unwrap();
+    let sg: f32 = s.raw_get(2).unwrap();
+    let sb: f32 = s.raw_get(3).unwrap();
+
+    Ok(Material::phong_texture(
+        &file_name,
+        u_max,
+        v_max,
+        Color::new(sr, sg, sb),
+        p,
+    ))
+}
+
 fn create_light(_: &Lua, (p, c, a): (Table, Table, Table)) -> Result<Light> {
     let px: f32 = p.raw_get(1).unwrap();
     let py: f32 = p.raw_get(2).unwrap();
@@ -119,13 +133,13 @@ fn render(
     }
 
     let mut volumes: Vec<VolumetricSolid> = Vec::new();
-    volumes.push(VolumetricSolid::new(
-        Volume::Box(BoxParams{
-            pos: Vector3::new(-50f32,0.0,-50.0),
-            size: Vector3::new(100.0f32,3f32,400.0f32)
-        }),
-        VolumeEffect::Fog(Color::new(0.8, 0.8, 0.8))
-    ));
+    // volumes.push(VolumetricSolid::new(
+    //     Volume::Box(BoxParams{
+    //         pos: Vector3::new(-50f32,0.0,-50.0),
+    //         size: Vector3::new(100.0f32,3f32,400.0f32)
+    //     }),
+    //     VolumeEffect::Fog(Color::new(0.8, 0.8, 0.8))
+    // ));
     let raytracer = Raytracer {
         root_node: node,
         eye: Point3::new(
@@ -207,6 +221,8 @@ pub fn run_lua_script(file_name: &str) {
         ("mesh", lua.create_function(create_mesh).unwrap()),
         // Create a new material
         ("material", lua.create_function(create_material).unwrap()),
+        // Create a new textured material
+        ("textured_material", lua.create_function(create_textured_material).unwrap()),
         // Create a new light
         ("light", lua.create_function(create_light).unwrap()),
         // Print the details of a node

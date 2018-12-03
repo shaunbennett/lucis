@@ -7,6 +7,7 @@ tree = rt.textured_material("texture/tree_texture.png", 1.0, 1.0, {0.0, 0.0, 0.0
 ground = rt.material({0.611764706, 0.341176471, 0.031372549}, {0.0, 0.0, 0.0}, 0)
 tree_brown = rt.material({.325490196, .207843137, .039215686}, {0.0, 0.0, 0.0}, 0)
 tree_texture = rt.textured_material("texture/tree_texture.png", 1.0, 1.0, {0.0, 0.0, 0.0}, 0)
+ground_texture = rt.textured_material("texture/cracked.jpg", 0.2, 0.2, {0.0, 0.0, 0.0}, 0)
 
 scene = rt.node('scene')
 -- scene:translate(0, -6, 0)
@@ -14,8 +15,9 @@ scene = rt.node('scene')
 
 -- the floor
 floor = rt.mesh('plane', 'obj/plane.obj' )
-floor:set_material(ground)
-floor:scale(100, 1, 100)
+floor:set_material(ground_texture)
+floor:scale(30, 1, 30)
+floor:translate(10, 0, -20)
 
 for x=1,4 do
 	for z=1,4 do
@@ -38,8 +40,8 @@ scene:add_child(floor)
 
 -- The lights
 l1 = rt.light({10,30,10}, {0.6, 0.6, 0.6}, {1, 0.0005, 0})
-l1:set_soft(5, 16)
+l1:set_soft(4, 32)
 -- l2 = rt.light({0, 5, 30}, {0.8, 0.8, 0.8}, {1, 0.0005, 0})
 lights = { l1 }
 
-rt.render(scene, 'fog.png', 2048, 2048, {0,  4, 1}, {0, 4.5, -8}, {0, 1, 0}, 30, lights)
+rt.render(scene, 'fog.png', 2048, 2048, {0,  5, 1}, {0, 6.2, -8}, {0, 1, 0}, 30, lights)

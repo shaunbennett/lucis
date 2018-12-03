@@ -138,7 +138,7 @@ fn render(
             pos: Vector3::new(-50f32,0.0,-50.0),
             size: Vector3::new(100.0f32,3f32,400.0f32)
         }),
-        VolumeEffect::Fog(Color::new(0.4, 0.4, 0.4))
+        VolumeEffect::Fog(Color::new(0.7, 0.7, 0.9))
     ));
     let raytracer = Raytracer {
         root_node: node,

@@ -29,7 +29,7 @@ impl Primitive {
             Primitive::Cylinder => cylinder_collides(ray, t_value, normal, uv),
             Primitive::Cone => cone_collides(ray, t_value, normal),
             Primitive::Cube => cube_collides(ray, t_value, normal),
-            Primitive::Mesh(mesh) => mesh_collides(ray, mesh, t_value, normal),
+            Primitive::Mesh(mesh) => mesh_collides(ray, mesh, t_value, normal, uv),
             _ => false,
         }
     }
@@ -242,7 +242,7 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>, uv
     }
 }
 
-fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
+fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3<f32>, uv: &mut [f32; 2]) -> bool {
     if aabb_collision(ray, &mesh.aabb_corner, &mesh.aabb_size) == Roots::No([]) {
         return false;
     }
@@ -262,6 +262,16 @@ fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3
                 smallest_normal = *normal;
             }
         }
+    }
+
+    if smallest_t < f32::MAX {
+        let intersect = ray.src + (smallest_t * ray.dir);
+        if intersect.x < 0.0 {
+            uv[0] = 1.0 - intersect.x;
+        } else {
+            uv[0] = intersect.x;
+        }
+        uv[1] = intersect.z;
     }
 
     *normal = smallest_normal;

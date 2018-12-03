@@ -7,6 +7,8 @@ use std::fs::File;
 use std::io::prelude::*;
 use Raytracer;
 
+const ADD_VOLUMES: bool = false;
+
 fn print_node(_: &Lua, node: SceneNode) -> Result<()> {
     println!("{:#?}", node);
     Ok(())
@@ -136,23 +138,25 @@ fn render(
     }
 
     let mut volumes: Vec<VolumetricSolid> = Vec::new();
-    volumes.push(VolumetricSolid::new(
-        Volume::Box(BoxParams {
-            pos: Vector3::new(-50f32, 0.0, -50.0),
-            size: Vector3::new(100.0f32, 3f32, 400.0f32),
-        }),
-        VolumeEffect::Fog(Color::new(0.7, 0.7, 0.9)),
-    ));
-    volumes.push(VolumetricSolid::new(
-        Volume::Cone(ConeParams::new(
-            Vector3::new(0.0f32, 10.0, 20.0),
-            1.0,
-            0.0,
-            0.0,
-            180.0,
-        )),
-        VolumeEffect::Light(Color::new(0.5, 0.4, 0.2)),
-    ));
+    if ADD_VOLUMES {
+        volumes.push(VolumetricSolid::new(
+            Volume::Box(BoxParams {
+                pos: Vector3::new(-50f32, 0.0, -50.0),
+                size: Vector3::new(100.0f32, 3f32, 400.0f32),
+            }),
+            VolumeEffect::Fog(Color::new(0.7, 0.7, 0.9)),
+        ));
+        volumes.push(VolumetricSolid::new(
+            Volume::Cone(ConeParams::new(
+                Vector3::new(0.0f32, 10.0, 20.0),
+                1.0,
+                0.0,
+                0.0,
+                180.0,
+            )),
+            VolumeEffect::Light(Color::new(0.5, 0.4, 0.2)),
+        ));
+    }
     let raytracer = Raytracer {
         root_node: node,
         eye: Point3::new(

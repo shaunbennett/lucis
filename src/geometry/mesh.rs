@@ -66,9 +66,21 @@ impl Mesh {
                         vertices.push(Vector3::new(x, y, z));
                     }
                     "f" => {
-                        let av: Vec<&str> = parts.next().ok_or("Incorrect file format")?.split("/").collect();
-                        let bv: Vec<&str> = parts.next().ok_or("Incorrect file format")?.split("/").collect();
-                        let cv: Vec<&str> = parts.next().ok_or("Incorrect file format")?.split("/").collect();
+                        let av: Vec<&str> = parts
+                            .next()
+                            .ok_or("Incorrect file format")?
+                            .split("/")
+                            .collect();
+                        let bv: Vec<&str> = parts
+                            .next()
+                            .ok_or("Incorrect file format")?
+                            .split("/")
+                            .collect();
+                        let cv: Vec<&str> = parts
+                            .next()
+                            .ok_or("Incorrect file format")?
+                            .split("/")
+                            .collect();
                         let a: usize = av[0].parse()?;
                         let b: usize = bv[0].parse()?;
                         let c: usize = cv[0].parse()?;

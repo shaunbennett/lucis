@@ -1,4 +1,5 @@
 use super::geometry::Ray;
+use geometry::volume::{VolumetricSolid};
 use image::{save_buffer, Rgb, RGB};
 use nalgebra::{convert, Affine3, Isometry, Point3, Rotation3, Vector3, U3};
 use pbr::ProgressBar;
@@ -10,7 +11,6 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use geometry::volume::{VolumetricSolid,Volume,VolumeEffect,BoxParams};
 
 type Isometry3<N> = Isometry<N, U3, Rotation3<f32>>;
 
@@ -143,7 +143,7 @@ impl Raytracer {
                     color = volume.apply(ray, &collision, color)
                 }
                 color
-            },
+            }
             None => {
                 let mut color = get_background_color(x, y, width, height);
                 for volume in self.volumes.iter() {

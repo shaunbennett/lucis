@@ -1,24 +1,23 @@
-use geometry::Ray;
-use nalgebra::{clamp, distance, Affine3, Matrix4, Vector3, Point3};
-use roots::{find_roots_quadratic, Roots};
-use scene::{Intersection, Color};
 use super::aabb_collision;
+use geometry::Ray;
+use nalgebra::{distance, Affine3, Matrix4, Point3, Vector3};
+use roots::{find_roots_quadratic, Roots};
+use scene::{Color, Intersection};
 
 pub struct VolumetricSolid {
     volume: Volume,
-    effect: VolumeEffect, }
+    effect: VolumeEffect,
+}
 
 impl VolumetricSolid {
     pub fn new(volume: Volume, effect: VolumeEffect) -> VolumetricSolid {
-        VolumetricSolid {
-            volume, effect
-        }
+        VolumetricSolid { volume, effect }
     }
 
     pub fn apply(&self, ray: &Ray, ri: &Option<Intersection>, curr_color: Color) -> Color {
         match self.volume.passes_through(ray) {
             Some(intersection) => self.effect.apply(ray, ri, &intersection, curr_color),
-            None => curr_color
+            None => curr_color,
         }
     }
 }
@@ -35,11 +34,9 @@ impl Volume {
         match self {
             Volume::Box(b) => box_passes_through(b, ray),
             Volume::Cone(c) => cone_passes_through(c, ray),
-            _ => None
         }
     }
 }
-
 
 // Represents an effect on the resulting pixel a volume has while being passed through
 pub enum VolumeEffect {
@@ -47,21 +44,32 @@ pub enum VolumeEffect {
     Fog(Color),
     // Color/Intensity
     Light(Color),
-    Solid
+    Solid,
 }
 
 impl VolumeEffect {
-    fn apply(&self, ray: &Ray, ri: &Option<Intersection>, vi: &VolumeIntersection, curr_color: Color) -> Color {
+    fn apply(
+        &self,
+        ray: &Ray,
+        ri: &Option<Intersection>,
+        vi: &VolumeIntersection,
+        curr_color: Color,
+    ) -> Color {
         match self {
             VolumeEffect::Fog(color) => fog_apply(*color, ray, ri, vi, curr_color),
             VolumeEffect::Light(color) => light_apply(*color, ray, ri, vi, curr_color),
             VolumeEffect::Solid => Color::new(1.0, 0.0, 0.0),
-            _ => curr_color
         }
     }
 }
 
-fn light_apply(light_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &VolumeIntersection, curr_color: Color) -> Color {
+fn light_apply(
+    light_color: Color,
+    ray: &Ray,
+    ri: &Option<Intersection>,
+    vi: &VolumeIntersection,
+    curr_color: Color,
+) -> Color {
     // Do calculation to apply fog effect
     let intensity = match ri {
         Some(ray_i) => {
@@ -71,7 +79,7 @@ fn light_apply(light_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &Vo
             let t_intersect = (ray_i.point - ray.src).x / ray.dir.x;
 
             if enter >= t_intersect {
-                return curr_color
+                return curr_color;
             }
 
             if leave < t_intersect {
@@ -85,15 +93,16 @@ fn light_apply(light_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &Vo
                 let distance = distance(&i1, &i2);
                 distance * 0.2
             }
-
-        },
+        }
         None => {
             let i1 = vi.i_1;
             let i2 = vi.i_2;
             let distance = distance(&i1, &i2);
             distance * 0.2
         }
-    }.max(0.0).min(0.7);
+    }
+    .max(0.0)
+    .min(0.7);
 
     // if intensity > 0.0 {
     //     return Color::new(1.0, 0.0, 0.0);
@@ -106,7 +115,13 @@ fn light_apply(light_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &Vo
     Color::new(r, g, b)
 }
 
-fn fog_apply(fog_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &VolumeIntersection, curr_color: Color) -> Color {
+fn fog_apply(
+    fog_color: Color,
+    ray: &Ray,
+    ri: &Option<Intersection>,
+    vi: &VolumeIntersection,
+    curr_color: Color,
+) -> Color {
     // Do calculation to apply fog effect
     let fog_amount = match ri {
         Some(ray_i) => {
@@ -116,7 +131,7 @@ fn fog_apply(fog_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &Volume
             let t_intersect = (ray_i.point - ray.src).x / ray.dir.x;
 
             if enter >= t_intersect {
-                return curr_color
+                return curr_color;
             }
 
             if leave < t_intersect {
@@ -130,17 +145,18 @@ fn fog_apply(fog_color: Color, ray: &Ray, ri: &Option<Intersection>, vi: &Volume
                 let distance = distance(&i1, &i2);
                 distance * 0.03
             }
-
-        },
+        }
         None => {
             let i1 = ray.src + (vi.t_enter.max(0.0) * ray.dir);
             let i2 = ray.src + (vi.t_leave * ray.dir);
             let distance = distance(&i1, &i2);
             distance * 0.03
         }
-    }.max(0.0).min(1.0);
+    }
+    .max(0.0)
+    .min(1.0);
 
-    (fog_amount * fog_color) + ((1.0-fog_amount) * curr_color)
+    (fog_amount * fog_color) + ((1.0 - fog_amount) * curr_color)
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
@@ -174,12 +190,21 @@ fn box_passes_through(b: &BoxParams, ray: &Ray) -> Option<VolumeIntersection> {
     let roots = aabb_collision(ray, &b.pos, &b.size);
 
     match roots {
-        Roots::Two([t1, t2]) => Some(VolumeIntersection::new(t1, t2, ray.src + (t1 * ray.dir), ray.src + (t2 * ray.dir))),
-        Roots::One([t1]) => Some(VolumeIntersection::new(0.0f32, t1, ray.src, ray.src + (t1 * ray.dir))),
-        _ => None
+        Roots::Two([t1, t2]) => Some(VolumeIntersection::new(
+            t1,
+            t2,
+            ray.src + (t1 * ray.dir),
+            ray.src + (t2 * ray.dir),
+        )),
+        Roots::One([t1]) => Some(VolumeIntersection::new(
+            0.0f32,
+            t1,
+            ray.src,
+            ray.src + (t1 * ray.dir),
+        )),
+        _ => None,
     }
 }
-
 
 fn cone_passes_through(cone: &ConeParams, ray: &Ray) -> Option<VolumeIntersection> {
     let transformed_ray = cone.inv_transform * *ray;
@@ -192,14 +217,17 @@ fn cone_passes_through(cone: &ConeParams, ray: &Ray) -> Option<VolumeIntersectio
     let c = (src.x * src.x) + (src.z * src.z) - (src.y * src.y);
 
     match find_roots_quadratic(a, b, c) {
-        Roots::One(_) => {
-            return None
-        }
+        Roots::One(_) => return None,
         Roots::Two([r1, r2]) => {
             let i_1 = transformed_ray.src + (r1 * transformed_ray.dir);
             if i_1.y >= 0.0 && i_1.y <= 3.0 {
                 let i_2 = transformed_ray.src + (r2 * transformed_ray.dir);
-                Some(VolumeIntersection::new(r1, r2, cone.transform * i_1, cone.transform * i_2))
+                Some(VolumeIntersection::new(
+                    r1,
+                    r2,
+                    cone.transform * i_1,
+                    cone.transform * i_2,
+                ))
             } else {
                 None
             }
@@ -238,7 +266,7 @@ impl ConeParams {
         cone_params.translate(1.5, 0.77, -12.2);
         // cone_params.translate(1.5, 0.77, -20.2);
 
-        cone_params    
+        cone_params
     }
 
     fn scale(&mut self, x: f32, y: f32, z: f32) {

@@ -1,6 +1,6 @@
 use nalgebra::{Affine3, Point3, Vector3, U3};
 use scene::SceneNode;
-use std::cmp::{PartialEq, PartialOrd, Ordering};
+use std::cmp::{Ordering, PartialEq, PartialOrd};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Intersection<'a> {

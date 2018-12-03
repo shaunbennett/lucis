@@ -1,5 +1,5 @@
+use image::{open, RgbImage};
 use scene::Color;
-use image::{RgbImage,open};
 
 #[derive(Debug, Clone)]
 pub struct Texture {
@@ -27,8 +27,8 @@ impl Texture {
         // println!("umapped: {}, vmapped: {}", u_mapped, v_mapped);
 
         let (width, height) = self.image.dimensions();
-        let pixel_x = (u_mapped * (width-1) as f32).round() as u32;
-        let pixel_y = (v_mapped * (height-1) as f32).round() as u32;
+        let pixel_x = (u_mapped * (width - 1) as f32).round() as u32;
+        let pixel_y = (v_mapped * (height - 1) as f32).round() as u32;
         // println!("x: {}, y: {}", pixel_x, pixel_y);
 
         Color::from_rgb(self.image.get_pixel(pixel_x, pixel_y))

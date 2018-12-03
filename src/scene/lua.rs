@@ -1,8 +1,8 @@
+use geometry::volume::{BoxParams, ConeParams, Volume, VolumeEffect, VolumetricSolid};
 use geometry::{Mesh, Primitive};
 use nalgebra::{Point3, Vector3};
 use rlua::{Function, Lua, Result, Table, UserData, UserDataMethods};
 use scene::{Color, Light, Material, SceneNode};
-use geometry::volume::{BoxParams,VolumetricSolid,VolumeEffect,Volume,ConeParams};
 use std::fs::File;
 use std::io::prelude::*;
 use Raytracer;
@@ -80,7 +80,10 @@ fn create_material(_: &Lua, (d, s, p): (Table, Table, f32)) -> Result<Material> 
     ))
 }
 
-fn create_textured_material(_: &Lua, (file_name, u_max, v_max, s, p): (String, f32, f32, Table, f32)) -> Result<Material> {
+fn create_textured_material(
+    _: &Lua,
+    (file_name, u_max, v_max, s, p): (String, f32, f32, Table, f32),
+) -> Result<Material> {
     let sr: f32 = s.raw_get(1).unwrap();
     let sg: f32 = s.raw_get(2).unwrap();
     let sb: f32 = s.raw_get(3).unwrap();
@@ -134,15 +137,21 @@ fn render(
 
     let mut volumes: Vec<VolumetricSolid> = Vec::new();
     volumes.push(VolumetricSolid::new(
-        Volume::Box(BoxParams{
-            pos: Vector3::new(-50f32,0.0,-50.0),
-            size: Vector3::new(100.0f32,3f32,400.0f32)
+        Volume::Box(BoxParams {
+            pos: Vector3::new(-50f32, 0.0, -50.0),
+            size: Vector3::new(100.0f32, 3f32, 400.0f32),
         }),
-        VolumeEffect::Fog(Color::new(0.7, 0.7, 0.9))
+        VolumeEffect::Fog(Color::new(0.7, 0.7, 0.9)),
     ));
     volumes.push(VolumetricSolid::new(
-        Volume::Cone(ConeParams::new(Vector3::new(0.0f32, 10.0, 20.0), 1.0, 0.0, 0.0, 180.0)),
-        VolumeEffect::Light(Color::new(0.5, 0.4, 0.2))
+        Volume::Cone(ConeParams::new(
+            Vector3::new(0.0f32, 10.0, 20.0),
+            1.0,
+            0.0,
+            0.0,
+            180.0,
+        )),
+        VolumeEffect::Light(Color::new(0.5, 0.4, 0.2)),
     ));
     let raytracer = Raytracer {
         root_node: node,
@@ -164,7 +173,7 @@ fn render(
         fov_y: fov,
         ambient: Color::new(0.2, 0.2, 0.2),
         lights: lights_vec,
-        volumes
+        volumes,
     };
     println!("Rendering {}", file_name);
     raytracer.render(file_name.as_ref(), width, height);
@@ -226,7 +235,10 @@ pub fn run_lua_script(file_name: &str) {
         // Create a new material
         ("material", lua.create_function(create_material).unwrap()),
         // Create a new textured material
-        ("textured_material", lua.create_function(create_textured_material).unwrap()),
+        (
+            "textured_material",
+            lua.create_function(create_textured_material).unwrap(),
+        ),
         // Create a new light
         ("light", lua.create_function(create_light).unwrap()),
         // Print the details of a node

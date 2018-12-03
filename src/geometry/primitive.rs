@@ -1,10 +1,10 @@
+use super::aabb_collision;
 use geometry::Mesh;
 use geometry::Ray;
 use nalgebra::{dot, Unit, Vector3};
 use roots::find_roots_quadratic;
 use roots::Roots;
 use std::f32;
-use super::aabb_collision;
 
 const SPHERE_EPS: f32 = 0.0001;
 const CYLINDER_EPS: f32 = 0.0001;
@@ -23,7 +23,13 @@ pub enum Primitive {
 }
 
 impl Primitive {
-    pub fn collides(&self, ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>, uv: &mut [f32;2]) -> bool {
+    pub fn collides(
+        &self,
+        ray: &Ray,
+        t_value: &mut f32,
+        normal: &mut Vector3<f32>,
+        uv: &mut [f32; 2],
+    ) -> bool {
         match self {
             Primitive::Sphere => sphere_collides(ray, t_value, normal),
             Primitive::Cylinder => cylinder_collides(ray, t_value, normal, uv),
@@ -35,38 +41,41 @@ impl Primitive {
     }
 }
 
-
 fn close(a: f32, b: f32) -> bool {
     let diff = (a - b).abs();
     diff < CLOSE_EPS
 }
 
 fn cube_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
-    let roots = aabb_collision(ray, &Vector3::new(0.0, 0.0, 0.0), &Vector3::new(1.0, 1.0, 1.0));
+    let roots = aabb_collision(
+        ray,
+        &Vector3::new(0.0, 0.0, 0.0),
+        &Vector3::new(1.0, 1.0, 1.0),
+    );
 
     *t_value = match roots {
         Roots::Two([t1, _]) => t1,
         Roots::One([t1]) => t1,
-        _ => return false
+        _ => return false,
     };
 
-        let collision_point = ray.src + (*t_value * ray.dir);
-        // decide which side the point is on
-        if close(collision_point.x, 0.0) {
-            *normal = Vector3::new(-1.0, 0.0, 0.0);
-        } else if close(collision_point.x, 1.0) {
-            *normal = Vector3::new(1.0, 0.0, 0.0);
-        } else if close(collision_point.y, 0.0) {
-            *normal = Vector3::new(0.0, -1.0, 0.0);
-        } else if close(collision_point.y, 1.0) {
-            *normal = Vector3::new(0.0, 1.0, 0.0);
-        } else if close(collision_point.z, 0.0) {
-            *normal = Vector3::new(0.0, 0.0, -1.0);
-        } else {
-            *normal = Vector3::new(0.0, 0.0, 1.0);
-        }
+    let collision_point = ray.src + (*t_value * ray.dir);
+    // decide which side the point is on
+    if close(collision_point.x, 0.0) {
+        *normal = Vector3::new(-1.0, 0.0, 0.0);
+    } else if close(collision_point.x, 1.0) {
+        *normal = Vector3::new(1.0, 0.0, 0.0);
+    } else if close(collision_point.y, 0.0) {
+        *normal = Vector3::new(0.0, -1.0, 0.0);
+    } else if close(collision_point.y, 1.0) {
+        *normal = Vector3::new(0.0, 1.0, 0.0);
+    } else if close(collision_point.z, 0.0) {
+        *normal = Vector3::new(0.0, 0.0, -1.0);
+    } else {
+        *normal = Vector3::new(0.0, 0.0, 1.0);
+    }
 
-        true
+    true
 }
 
 fn sphere_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> bool {
@@ -170,7 +179,12 @@ fn cone_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>) -> boo
     }
 }
 
-fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>, uv: &mut [f32;2]) -> bool {
+fn cylinder_collides(
+    ray: &Ray,
+    t_value: &mut f32,
+    normal: &mut Vector3<f32>,
+    uv: &mut [f32; 2],
+) -> bool {
     let src = &ray.src;
     let dir = &ray.dir;
 
@@ -230,9 +244,9 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>, uv
             *normal = cap_normal;
         } else {
             *normal = Vector3::new(intersection_point.x, 0.0f32, intersection_point.z);
-            let u = normal.x.atan2(normal.z) / f32::consts::PI + 2.0;//atan2(n.x, n.z) / (2*pi) + 0.5;
-            let v = intersection_point.y;//atan2(n.x, n.z) / (2*pi) + 0.5;
-            // println!("u: {}, v: {}", u, v);
+            let u = normal.x.atan2(normal.z) / f32::consts::PI + 2.0; //atan2(n.x, n.z) / (2*pi) + 0.5;
+            let v = intersection_point.y; //atan2(n.x, n.z) / (2*pi) + 0.5;
+                                          // println!("u: {}, v: {}", u, v);
             (*uv)[0] = u;
             (*uv)[1] = v;
         }
@@ -242,7 +256,13 @@ fn cylinder_collides(ray: &Ray, t_value: &mut f32, normal: &mut Vector3<f32>, uv
     }
 }
 
-fn mesh_collides(ray: &Ray, mesh: &Mesh, t_value: &mut f32, normal: &mut Vector3<f32>, uv: &mut [f32; 2]) -> bool {
+fn mesh_collides(
+    ray: &Ray,
+    mesh: &Mesh,
+    t_value: &mut f32,
+    normal: &mut Vector3<f32>,
+    uv: &mut [f32; 2],
+) -> bool {
     if aabb_collision(ray, &mesh.aabb_corner, &mesh.aabb_size) == Roots::No([]) {
         return false;
     }

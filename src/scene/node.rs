@@ -1,7 +1,7 @@
 use geometry::{Primitive, Ray};
 use nalgebra::{clamp, distance_squared, Affine3, Matrix4, Vector3};
-use scene::{Color, Intersection};
 use scene::texture::Texture;
+use scene::{Color, Intersection};
 use Raytracer;
 
 #[derive(Debug, Clone)]
@@ -69,19 +69,33 @@ impl Material {
         Material::PhongMaterial { kd, ks, shininess }
     }
 
-    pub fn phong_texture(file_name: &str, u_max: f32, v_max: f32, ks: Color, shininess: f32) -> Material {
-        Material::PhongTexture { texture: Texture::load_texture(file_name, u_max, v_max), ks, shininess }
+    pub fn phong_texture(
+        file_name: &str,
+        u_max: f32,
+        v_max: f32,
+        ks: Color,
+        shininess: f32,
+    ) -> Material {
+        Material::PhongTexture {
+            texture: Texture::load_texture(file_name, u_max, v_max),
+            ks,
+            shininess,
+        }
     }
 
     pub fn get_color(&self, ray: &Ray, raytracer: &Raytracer, intersect: &Intersection) -> Color {
         match self {
             Material::PhongMaterial { kd, ks, shininess } => {
                 calculate_phong_lighting(kd, ks, *shininess, ray, raytracer, intersect)
-            },
-            Material::PhongTexture { ks, shininess, texture } => {
+            }
+            Material::PhongTexture {
+                ks,
+                shininess,
+                texture,
+            } => {
                 let kd = texture.get_color(intersect.u_value, intersect.v_value);
                 calculate_phong_lighting(&kd, ks, *shininess, ray, raytracer, intersect)
-            },
+            }
             Material::None => Color::new(0.0, 0.0, 0.0),
         }
     }
@@ -121,21 +135,22 @@ impl Intersect for SceneNode {
         let mut t_value: f32 = 0.0;
         let mut normal = Vector3::new(0.0f32, 0.0, 0.0);
         let mut uv = [0.0, 0.0];
-        let self_collides = if self
-            .primitive
-            .collides(&transformed_ray, &mut t_value, &mut normal, &mut uv)
-        {
-            Some(Intersection::new(
-                t_value,
-                transformed_ray.src + (t_value * transformed_ray.dir.normalize()),
-                &self,
-                normal,
-                uv[0],
-                uv[1],
-            ))
-        } else {
-            None
-        };
+        let self_collides =
+            if self
+                .primitive
+                .collides(&transformed_ray, &mut t_value, &mut normal, &mut uv)
+            {
+                Some(Intersection::new(
+                    t_value,
+                    transformed_ray.src + (t_value * transformed_ray.dir.normalize()),
+                    &self,
+                    normal,
+                    uv[0],
+                    uv[1],
+                ))
+            } else {
+                None
+            };
 
         let min = self
             .children

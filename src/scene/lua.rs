@@ -133,13 +133,13 @@ fn render(
     }
 
     let mut volumes: Vec<VolumetricSolid> = Vec::new();
-    // volumes.push(VolumetricSolid::new(
-    //     Volume::Box(BoxParams{
-    //         pos: Vector3::new(-50f32,0.0,-50.0),
-    //         size: Vector3::new(100.0f32,3f32,400.0f32)
-    //     }),
-    //     VolumeEffect::Fog(Color::new(0.8, 0.8, 0.8))
-    // ));
+    volumes.push(VolumetricSolid::new(
+        Volume::Box(BoxParams{
+            pos: Vector3::new(-50f32,0.0,-50.0),
+            size: Vector3::new(100.0f32,3f32,400.0f32)
+        }),
+        VolumeEffect::Fog(Color::new(0.4, 0.4, 0.4))
+    ));
     let raytracer = Raytracer {
         root_node: node,
         eye: Point3::new(

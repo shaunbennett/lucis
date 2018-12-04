@@ -18,12 +18,12 @@
 - [x] Phong lighting is implemented
 - [x] Shadow rays for simple shadows
 - [ ] Supersampling (for AA)
-- [ ] Texture Mapping
-- [ ] L-System modelling (See [here](https://github.com/shaunbennett/lindenmayer))
+- [x] Texture Mapping
+- [x] L-System modelling (See [here](https://github.com/shaunbennett/lindenmayer))
 - [ ] Bump Mapping
 - [x] Soft shadow lighting
-- [ ] Spotlight based lighting
-- [ ] Volumetric solids (for fog)
+- [x] Spotlight based lighting
+- [x] Volumetric solids (for fog)
 
 ### Performance
 - [x] Bounding volumes on meshes

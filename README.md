@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/shaunbennett/lucis/raw/master/render/sample.png" width="256"></p>
+<p align="center"><img src="https://github.com/shaunbennett/lucis/raw/master/render/sample.png" width="256"><img src="https://github.com/shaunbennett/lucis/raw/master/render/fog_noman.png" width="256"></p>
 
 # lucis
 Lucis is a basic ray tracer written in rust. Scenes can be created using lua scripting, based off primitive types and manipulated using hierarchical transformations.

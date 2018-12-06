@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use Raytracer;
 
-const ADD_VOLUMES: bool = false;
+const ADD_VOLUMES: bool = true;
 
 fn print_node(_: &Lua, node: SceneNode) -> Result<()> {
     println!("{:#?}", node);

@@ -12,7 +12,12 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
+extern crate scoped_threadpool;
+use self::scoped_threadpool::Pool;
+
 type Isometry3<N> = Isometry<N, U3, Rotation3<f32>>;
+
+const USE_RAYON: bool = true;
 
 // TODO: Tracing Options
 // pub struct TracingOptions {
@@ -105,31 +110,67 @@ impl Raytracer {
             pb.finish_print(&completion_string);
         });
 
-        let image_pixels: Vec<Rgb<u8>> = (0..pixel_count)
-            .into_par_iter()
-            .map(|i| {
-                let x = i % width;
-                let y = i / height;
-                let fx = x as f32 + 0.5;
-                let fy = y as f32 + 0.5;
-                let pixel_vec = view_matrix
-                    * Vector3::new(
-                        Z_NEAR * ((fx / fw) - 0.5) * side * fw / fh,
-                        Z_NEAR * -((fy / fh) - 0.5) * side,
-                        Z_NEAR,
-                    );
-                let ray = Ray::new(self.eye, pixel_vec);
-                let color = self.trace_ray(width, height, &ray, x, y);
-                pixels_rendered.fetch_add(1, Ordering::Relaxed);
-                color.as_rgb()
-            })
-            .collect();
+        if USE_RAYON {
+            let image_pixels: Vec<Rgb<u8>> = (0..pixel_count)
+                .into_par_iter()
+                .map(|i| {
+                    let x = i % width;
+                    let y = i / height;
+                    let fx = x as f32 + 0.5;
+                    let fy = y as f32 + 0.5;
+                    let pixel_vec = view_matrix
+                        * Vector3::new(
+                            Z_NEAR * ((fx / fw) - 0.5) * side * fw / fh,
+                            Z_NEAR * -((fy / fh) - 0.5) * side,
+                            Z_NEAR,
+                        );
+                    let ray = Ray::new(self.eye, pixel_vec);
+                    let color = self.trace_ray(width, height, &ray, x, y);
+                    pixels_rendered.fetch_add(1, Ordering::Relaxed);
+                    color.as_rgb()
+                })
+                .collect();
 
-        // ENTERING SCARY ZONE, DON'T ASK QUESTIONS
-        let transmuted_pixels = unsafe {
-            slice::from_raw_parts(image_pixels.as_ptr() as *mut u8, (pixel_count * 3) as usize)
-        };
-        save_buffer(file_name, transmuted_pixels, width, height, RGB(8)).unwrap();
+            // ENTERING SCARY ZONE, DON'T ASK QUESTIONS
+            let transmuted_pixels = unsafe {
+                slice::from_raw_parts(image_pixels.as_ptr() as *mut u8, (pixel_count * 3) as usize)
+            };
+            save_buffer(file_name, transmuted_pixels, width, height, RGB(8)).unwrap();
+        } else {
+            let mut buffer: Vec<u8> = vec![0; (width * height * 3) as usize];
+            let mut pool = Pool::new(8);
+
+            pool.scoped(|scoped| {
+                // Create references to each element in the vector ...
+                let mut y = 0;
+                let buffer_ref = &mut buffer;
+                // TODO change back to line by line chunks
+                for chunk in buffer_ref.chunks_mut(3 as usize) {
+                    let pixels_rendered = pixels_rendered.clone();
+                    scoped.execute(move || {
+                        for x in 0..width {
+                            let fx = x as f32 + 0.5;
+                            let fy = y as f32 + 0.5;
+                            let pixel_vec = view_matrix
+                                * Vector3::new(
+                                    Z_NEAR * ((fx / fw) - 0.5) * side * fw / fh,
+                                    Z_NEAR * -((fy / fh) - 0.5) * side,
+                                    Z_NEAR,
+                                );
+                            let ray = Ray::new(self.eye, pixel_vec);
+                            let color = self.trace_ray(width, height, &ray, x, y);
+                            pixels_rendered.fetch_add(1, Ordering::Relaxed);
+                            let rgb = color.as_rgb();
+                            chunk[0] = rgb.data[0];
+                            chunk[1] = rgb.data[1];
+                            chunk[2] = rgb.data[2];
+                        }
+                    });
+                    y += 1;
+                }
+            });
+            save_buffer(file_name, &buffer, width, height, RGB(8)).unwrap();
+        }
         progress_thread.join().unwrap();
     }
 

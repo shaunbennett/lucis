@@ -1,3 +1,11 @@
+extern crate image;
+extern crate nalgebra;
+extern crate pbr;
+extern crate rand;
+extern crate rayon;
+extern crate rlua;
+extern crate roots;
+
 pub mod geometry;
 pub mod scene;
 

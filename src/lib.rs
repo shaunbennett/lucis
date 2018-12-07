@@ -1,16 +1,8 @@
-extern crate image;
-extern crate nalgebra;
-extern crate pbr;
-extern crate rand;
-extern crate rayon;
-extern crate rlua;
-extern crate roots;
-
 pub mod geometry;
 pub mod scene;
 
 mod raytrace;
-pub use raytrace::Raytracer;
+pub use crate::raytrace::Raytracer;
 
 use nalgebra::{Point3, Transform3, Vector3};
 

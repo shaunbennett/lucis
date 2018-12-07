@@ -1,5 +1,5 @@
+use crate::scene::Color;
 use image::{open, RgbImage};
-use scene::Color;
 
 #[derive(Debug, Clone)]
 pub struct Texture {

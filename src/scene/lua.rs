@@ -1,11 +1,11 @@
-use geometry::volume::{BoxParams, ConeParams, Volume, VolumeEffect, VolumetricSolid};
-use geometry::{Mesh, Primitive};
+use crate::geometry::volume::{BoxParams, ConeParams, Volume, VolumeEffect, VolumetricSolid};
+use crate::geometry::{Mesh, Primitive};
+use crate::scene::{Color, Light, Material, SceneNode};
+use crate::Raytracer;
 use nalgebra::{Point3, Vector3};
 use rlua::{Function, Lua, Result, Table, UserData, UserDataMethods};
-use scene::{Color, Light, Material, SceneNode};
 use std::fs::File;
 use std::io::prelude::*;
-use Raytracer;
 
 const ADD_VOLUMES: bool = true;
 

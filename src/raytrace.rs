@@ -1,19 +1,17 @@
 use super::geometry::Ray;
-use geometry::volume::{VolumetricSolid};
+use crate::geometry::volume::VolumetricSolid;
+use crate::scene::{Color, Intersect, Light, SceneNode};
 use image::{save_buffer, Rgb, RGB};
 use nalgebra::{convert, Affine3, Isometry, Point3, Rotation3, Vector3, U3};
 use pbr::ProgressBar;
 use rand::{thread_rng, Rng};
 use rayon::prelude::*;
-use scene::{Color, Intersect, Light, SceneNode};
+use scoped_threadpool::Pool;
 use std::slice;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-
-extern crate scoped_threadpool;
-use self::scoped_threadpool::Pool;
 
 type Isometry3<N> = Isometry<N, U3, Rotation3<f32>>;
 

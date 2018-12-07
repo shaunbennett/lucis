@@ -1,6 +1,6 @@
+use crate::scene::Color;
 use nalgebra::Point3;
 use rand::{thread_rng, Rng};
-use scene::Color;
 use std::default::Default;
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

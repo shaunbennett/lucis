@@ -1,8 +1,8 @@
 use super::aabb_collision;
-use geometry::Ray;
+use crate::geometry::Ray;
+use crate::scene::{Color, Intersection};
 use nalgebra::{distance, Affine3, Matrix4, Point3, Vector3};
 use roots::{find_roots_quadratic, Roots};
-use scene::{Color, Intersection};
 
 pub struct VolumetricSolid {
     volume: Volume,

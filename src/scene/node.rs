@@ -1,8 +1,8 @@
-use geometry::{Primitive, Ray};
+use crate::geometry::{Primitive, Ray};
+use crate::scene::texture::Texture;
+use crate::scene::{Color, Intersection};
+use crate::Raytracer;
 use nalgebra::{clamp, distance_squared, Affine3, Matrix4, Vector3};
-use scene::texture::Texture;
-use scene::{Color, Intersection};
-use Raytracer;
 
 #[derive(Debug, Clone)]
 pub enum Material {

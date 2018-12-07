@@ -2,15 +2,12 @@
 name = "lucis"
 version = "0.1.0"
 authors = ["Shaun Bennett <me@phinary.ca>"]
+edition = "2018"
 
 [[bin]]
 name = "lucis"
 path = "src/main.rs"
 doc = false
-
-[lib]
-name = "lucis"
-path = "src/lib.rs"
 
 [dependencies]
 image = "0.20.1"

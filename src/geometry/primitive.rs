@@ -1,6 +1,4 @@
-use super::aabb_collision;
-use geometry::Mesh;
-use geometry::Ray;
+use crate::geometry::{aabb_collision, Mesh, Ray};
 use nalgebra::{dot, Unit, Vector3};
 use roots::find_roots_quadratic;
 use roots::Roots;

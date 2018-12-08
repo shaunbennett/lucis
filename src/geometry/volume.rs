@@ -1,5 +1,4 @@
-use super::aabb_collision;
-use crate::geometry::Ray;
+use crate::geometry::{aabb_collision, Ray};
 use crate::scene::{Color, Intersection};
 use nalgebra::{distance, Affine3, Matrix4, Point3, Vector3};
 use roots::{find_roots_quadratic, Roots};

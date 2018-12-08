@@ -1,5 +1,5 @@
-use super::geometry::Ray;
-use crate::geometry::volume::VolumetricSolid;
+use crate::geometry::Ray;
+use crate::geometry::volume::{VolumetricSolid};
 use crate::scene::{Color, Intersect, Light, SceneNode};
 use image::{save_buffer, Rgb, RGB};
 use nalgebra::{convert, Affine3, Isometry, Point3, Rotation3, Vector3, U3};
@@ -50,7 +50,7 @@ pub struct Raytracer {
     // Lighting
     pub ambient: Color,
     pub lights: Vec<Light>,
-    pub volumes: Vec<VolumetricSolid>,
+    pub _volumes: Vec<VolumetricSolid>,
 }
 
 impl Default for Raytracer {

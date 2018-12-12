@@ -1,7 +1,30 @@
 <p align="center"><img src="https://github.com/shaunbennett/lucis/raw/master/render/soft_shadows.png" width="256"><img src="https://github.com/shaunbennett/lucis/raw/master/render/sample.png" width="256"><img src="https://github.com/shaunbennett/lucis/raw/master/render/fog_noman.png" width="256"></p>
 
 # lucis
-Lucis is a basic ray tracer written in rust. Scenes can be created using lua scripting, based off primitive types and manipulated using hierarchical transformations.
+Lucis is a basic ray tracer written in rust. Scenes are created using lua scripting, based off primitive types or meshes, and manipulated using hierarchical affine transformations (scale, rotate, translate). Scene modelling examples can be found in the [scene](https://github.com/shaunbennett/lucis/tree/master/scene) directory and example renders can be found in [render](https://github.com/shaunbennett/lucis/tree/master/render).
+
+### Features
+- Lua bindings for scene modelling (see [Scripting](#scripting))
+- Hierarchical Modelling
+- Sphere, Cube, Cone, and Cylinder Primitive Types
+- Meshes using [obj format](https://en.m.wikipedia.org/wiki/Wavefront_.obj_file) (only supports triangle faces)
+- Bounding volumes on meshes for improved performance
+- [Phong Illumination](https://en.m.wikipedia.org/wiki/Phong_reflection_model)
+- Shadow rays
+- Soft shadows using spherical light sources
+- Texture mapping for primitives
+- Multithreaded rendering
+- Volumetric objects with fog and lighting effects
+- Generated background scene behind the render
+- Animation rendering (can be done through lua scripts)
+
+### TODO List
+- [ ] Adaptive Supersampling
+- [ ] Spacial partitioning of the hierarchical scene structure for improved performance
+- [ ] [Phong shading](https://en.m.wikipedia.org/wiki/Phong_shading) for meshes
+- [ ] Texture mapping for meshes
+- [ ] Bump mapping
+- [ ] Reflections
 
 ## Scripting
 ### Object Creation
@@ -29,3 +52,6 @@ By default, lights act as a point light meaning they will only generate hard sha
 |Command|Description|
 |----|----|
 |_light_:set_soft(_**radius**_, _**samples**_)|Set a light to be a soft light with radius _**radius**_ and _**samples**_ light samples.
+
+## Usage
+Clone to repository and run `cargo build --release`. A binary will be built at `target/release/lucis`. The program can be ran as `lucis <file_name>` where `file_name` is the lua file you would like to run and `lucis` is the path to the binary. For example, try `lucis soft_shadows.lua`.

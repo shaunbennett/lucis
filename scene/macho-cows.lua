@@ -94,8 +94,9 @@ for i = 1, 6 do
    an_arc:add_child(arc)
    scene:add_child(an_arc)
 end
+ambient_lighting = {0.2, 0.2, 0.2}
 
 rt.render(scene,
 	  'macho-cows.png', 256, 256,
-	  {0, 2, 30}, {0, 0, -1}, {0, 1, 0}, 50,
+	  {0, 2, 30}, {0, 0, -1}, {0, 1, 0}, 50, ambient_lighting,
 	  {rt.light({200, 202, 430}, {0.8, 0.8, 0.8}, {1, 0, 0})})

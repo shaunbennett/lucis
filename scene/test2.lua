@@ -69,11 +69,12 @@ scene:add_child(poly)
 l1 = rt.light({10,10,20}, {0.2, 0.2, 0.2}, {1, 0.0005, 0})
 l2 = rt.light({0, 5, 30}, {0.8, 0.8, 0.8}, {1, 0.0005, 0})
 lights = {l1, l2}
+ambient_lighting = {0.2, 0.2, 0.2}
 
 -- for i=1,360 do
 	-- scene:translate(-6, 2, 15)
 	-- scene:rotate('X', 1)
 	-- scene:translate(6, -2, -15)
 	rt.render(scene, 'test2.png', 1000, 1000, 
-		  {0, 0, 0,}, {0, 0, -1}, {0, 1, 0}, 50, lights)
+		  {0, 0, 0,}, {0, 0, -1}, {0, 1, 0}, 50, ambient_lighting, lights)
 	  -- end

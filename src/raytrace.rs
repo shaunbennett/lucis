@@ -50,7 +50,7 @@ pub struct Raytracer {
     // Lighting
     pub ambient: Color,
     pub lights: Vec<Light>,
-    pub _volumes: Vec<VolumetricSolid>,
+    pub volumes: Vec<VolumetricSolid>,
 }
 
 impl Default for Raytracer {

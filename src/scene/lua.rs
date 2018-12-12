@@ -7,7 +7,7 @@ use rlua::{Function, Lua, Result, Table, UserData, UserDataMethods};
 use std::fs::File;
 use std::io::prelude::*;
 
-const ADD_VOLUMES: bool = true;
+const ADD_VOLUMES: bool = false;
 
 fn print_node(_: &Lua, node: SceneNode) -> Result<()> {
     println!("{:#?}", node);
@@ -118,9 +118,30 @@ fn create_light(_: &Lua, (p, c, a): (Table, Table, Table)) -> Result<Light> {
     ))
 }
 
+fn create_effect_fog(_: &Lua, c: Table) -> Result<VolumeEffect> {
+    let cr: f32 = c.raw_get(1).unwrap();
+    let cg: f32 = c.raw_get(2).unwrap();
+    let cb: f32 = c.raw_get(3).unwrap();
+    Ok(VolumeEffect::Fog(Color::new(cr, cg, cb)))
+}
+
+fn create_effect_light(_: &Lua, c: Table) -> Result<VolumeEffect> {
+    let cr: f32 = c.raw_get(1).unwrap();
+    let cg: f32 = c.raw_get(2).unwrap();
+    let cb: f32 = c.raw_get(3).unwrap();
+    Ok(VolumeEffect::Light(Color::new(cr, cg, cb)))
+}
+
+fn create_effect_solid(_: &Lua, c: Table) -> Result<VolumeEffect> {
+    let cr: f32 = c.raw_get(1).unwrap();
+    let cg: f32 = c.raw_get(2).unwrap();
+    let cb: f32 = c.raw_get(3).unwrap();
+    Ok(VolumeEffect::Solid(Color::new(cr, cg, cb)))
+}
+
 fn render(
     _: &Lua,
-    (node, file_name, width, height, eye, view, up, fov, lights): (
+    (node, file_name, width, height, eye, view, up, fov, ambient_light, lights): (
         SceneNode,
         String,
         u32,
@@ -129,6 +150,7 @@ fn render(
         Table,
         Table,
         f32,
+        Table,
         Table,
     ),
 ) -> Result<()> {
@@ -175,7 +197,11 @@ fn render(
             up.raw_get(3).unwrap(),
         ),
         fov_y: fov,
-        ambient: Color::new(0.2, 0.2, 0.2),
+        ambient: Color::new(
+            ambient_light.raw_get(1).unwrap(),
+            ambient_light.raw_get(2).unwrap(),
+            ambient_light.raw_get(3).unwrap(),
+        ),
         lights: lights_vec,
         volumes,
     };
@@ -183,6 +209,10 @@ fn render(
     raytracer.render(file_name.as_ref(), width, height);
     Ok(())
 }
+
+impl UserData for VolumetricSolid {}
+
+impl UserData for VolumeEffect {}
 
 impl UserData for Material {}
 
@@ -242,6 +272,18 @@ pub fn run_lua_script(file_name: &str) {
         (
             "textured_material",
             lua.create_function(create_textured_material).unwrap(),
+        ),
+        (
+            "effect_fog",
+            lua.create_function(create_effect_fog).unwrap(),
+        ),
+        (
+            "effect_light",
+            lua.create_function(create_effect_light).unwrap(),
+        ),
+        (
+            "effect_solid",
+            lua.create_function(create_effect_solid).unwrap(),
         ),
         // Create a new light
         ("light", lua.create_function(create_light).unwrap()),

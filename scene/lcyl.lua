@@ -58,9 +58,10 @@ scene:add_child(tree)
 l1 = rt.light({10,10,20}, {0.2, 0.2, 0.2}, {1, 0.0005, 0})
 l2 = rt.light({0, 5, 30}, {0.8, 0.8, 0.8}, {1, 0.0005, 0})
 lights = {l1, l2}
+ambient_lighting = {0.2, 0.2, 0.2}
 
 scene:translate(-6, 2, 15)
 scene:rotate('X', 1)
 scene:translate(6, -2, -15)
 rt.render(scene, 'lcyl.png', 2048, 2048, 
-	  {0, 0, 0,}, {0, 0, -1}, {0, 1, 0}, 50, lights)
+	  {0, 0, 0,}, {0, 0, -1}, {0, 1, 0}, 50, ambient_lighting, lights)

@@ -43,7 +43,8 @@ pub enum VolumeEffect {
     Fog(Color),
     // Color/Intensity
     Light(Color),
-    Solid,
+    Solid(Color),
+    None,
 }
 
 impl VolumeEffect {
@@ -57,7 +58,8 @@ impl VolumeEffect {
         match self {
             VolumeEffect::Fog(color) => fog_apply(*color, ray, ri, vi, curr_color),
             VolumeEffect::Light(color) => light_apply(*color, ray, ri, vi, curr_color),
-            VolumeEffect::Solid => Color::new(1.0, 0.0, 0.0),
+            VolumeEffect::Solid(color) => *color,
+            VolumeEffect::None => curr_color,
         }
     }
 }

@@ -20,6 +20,7 @@ scene:add_child(c)
 l1 = rt.light({200,200,400}, {0.8, 0.8, 0.8}, {1, 0, 0})
 -- l2 = rt.light({0, 5, -20}, {0.4, 0.4, 0.8}, {1, 0, 0})
 lights = {l1}
+ambient_lighting = {0.2, 0.2, 0.2}
 
 rt.render(scene, 'cone.png', 1024, 1024, 
-	  {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, 50, lights)
+	  {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, 50, ambient_lighting, lights)

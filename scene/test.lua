@@ -21,5 +21,6 @@ root_node:add_child(sphere_node2)
 -- rt.print(root_node)
 
 light1 = rt.light({0, 0, 0}, {0.6, 0.6, 0.6}, {1, 0, 0})
+ambient_lighting = {0.2, 0.2, 0.2}
 
-rt.render(root_node, "test_image.png", 4000, 4000, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, 30, {light1})
+rt.render(root_node, "test_image.png", 4000, 4000, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, 30, ambient_lighting, {light1})

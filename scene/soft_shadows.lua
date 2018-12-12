@@ -29,5 +29,6 @@ root_node:translate(0, -3, 0)
 
 light1 = rt.light({5, 6, 5}, {0.8, 0.8, 0.8}, {1, 0, 0})
 light1:set_soft(3, 128)
+ambient_lighting = {0.2, 0.2, 0.2}
 
-rt.render(root_node, "soft_shadows.png", 2000, 2000, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, 30, {light1})
+rt.render(root_node, "soft_shadows.png", 2000, 2000, {0, 0, 0}, {0, 0, -1}, {0, 1, 0}, 30, {0, 0, 0}, ambient_lighting, {light1})

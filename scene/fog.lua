@@ -62,6 +62,7 @@ l1 = rt.light({10,25,10}, {0.6, 0.6, 0.6}, {1, 0.0005, 0})
 l1:set_soft(4, 64)
 -- l2 = rt.light({0, 5, 30}, {0.8, 0.8, 0.8}, {1, 0.0005, 0})
 lights = { l1 }
+ambient_lighting = {0.2, 0.2, 0.2}
 
-rt.render(scene, 'fog.png', 3840, 3840, {0.4,  4.5, 1}, {0.4, 5.5, -8}, {0, 1, 0}, 30, lights)
+rt.render(scene, 'fog.png', 3840, 3840, {0.4,  4.5, 1}, {0.4, 5.5, -8}, {0, 1, 0}, 30, ambient_lighting, lights)
 -- rt.render(scene, 'fog.png', 512, 512, {0,  0, 1}, {0, 0, -1}, {0, 1, 0}, 30, lights)

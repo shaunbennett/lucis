@@ -18,14 +18,6 @@ Lucis is a basic ray tracer written in rust. Scenes are created using lua script
 - Generated background scene behind the render
 - Animation rendering (can be done through lua scripts)
 
-### TODO List
-- [ ] Adaptive Supersampling
-- [ ] Spacial partitioning of the hierarchical scene structure for improved performance
-- [ ] [Phong shading](https://en.m.wikipedia.org/wiki/Phong_shading) for meshes
-- [ ] Texture mapping for meshes
-- [ ] Bump mapping
-- [ ] Reflections
-
 ## Scripting
 ### Object Creation
 |Command | Description|
@@ -46,12 +38,30 @@ Lucis is a basic ray tracer written in rust. Scenes are created using lua script
 |_node_:scale(_**x**_, _**y**_, _**z**_)|Scale _node_ by (_**x**_, _**y**_, _**z**_)|
 |_node_:rotate(_**axis**_, _**degrees**_)|Rotate _node_ on axis _**axis**_ by _**degrees**_ degrees|
 |_node_:add_child(_**child**_)|Copy the node _**child**_ as a child to _node_|
+
+### Volumetric Solids and Effects
+|Command | Description|
+|--------|------------|
+|rt.volume_box(_**pos**_, _**size**_)|Create a new volumetric box with position _**pos**_ and size _**size**_|
+|rt.volume_cone(_**pos**_, _**scale_y**_, _**rot**_)|Create a new volumetric cone with position _**pos**_, y scaling _**scale_y**_, and rotation _**rot**_|
+|rt.effect_fog(_**color**_)|Create a fog effect with the fog color _**color**_|
+|rt.effect_light(_**color**_)|Create a light effect with the light color _**color**_|
+|rt.effect_solid(_**color**_)|Create a solid color effect with the color _**color**_|
+|_volume_:set_effect(_**effect**_)|Set the effect for the volumetric solid _volume_|
+
 ### Light Manipulation
 By default, lights act as a point light meaning they will only generate hard shadows. You can can modify the light to act a soft light
-
 |Command|Description|
 |----|----|
 |_light_:set_soft(_**radius**_, _**samples**_)|Set a light to be a soft light with radius _**radius**_ and _**samples**_ light samples.
 
 ## Usage
 Clone to repository and run `cargo build --release`. A binary will be built at `target/release/lucis`. The program can be ran as `lucis <file_name>` where `file_name` is the lua file you would like to run and `lucis` is the path to the binary. For example, try `lucis soft_shadows.lua`.
+
+### TODO List
+- [ ] Adaptive Supersampling
+- [ ] Spacial partitioning of the hierarchical scene structure for improved performance
+- [ ] [Phong shading](https://en.m.wikipedia.org/wiki/Phong_shading) for meshes
+- [ ] Texture mapping for meshes
+- [ ] Bump mapping
+- [ ] Reflections

@@ -3,9 +3,10 @@ use crate::scene::{Color, Intersection};
 use nalgebra::{distance, Affine3, Matrix4, Point3, Vector3};
 use roots::{find_roots_quadratic, Roots};
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct VolumetricSolid {
-    volume: Volume,
-    effect: VolumeEffect,
+    pub volume: Volume,
+    pub effect: VolumeEffect,
 }
 
 impl VolumetricSolid {
@@ -38,13 +39,22 @@ impl Volume {
 }
 
 // Represents an effect on the resulting pixel a volume has while being passed through
+#[derive(Debug, Clone, PartialEq)]
 pub enum VolumeEffect {
     // Fog color
     Fog(Color),
     // Color/Intensity
     Light(Color),
+    // Solid color, primarily used for debugging
     Solid(Color),
     None,
+}
+
+impl Default for VolumeEffect {
+    fn default() -> Self {
+        // TODO: Might want to change this to None at some point
+        VolumeEffect::Solid(Color::new(1.0, 0.0, 0.0))
+    }
 }
 
 impl VolumeEffect {

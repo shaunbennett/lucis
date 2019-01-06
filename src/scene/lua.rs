@@ -7,8 +7,6 @@ use rlua::{Function, Lua, Result, Table, UserData, UserDataMethods};
 use std::fs::File;
 use std::io::prelude::*;
 
-const ADD_VOLUMES: bool = false;
-
 fn print_node(_: &Lua, node: SceneNode) -> Result<()> {
     println!("{:#?}", node);
     Ok(())
@@ -139,9 +137,51 @@ fn create_effect_solid(_: &Lua, c: Table) -> Result<VolumeEffect> {
     Ok(VolumeEffect::Solid(Color::new(cr, cg, cb)))
 }
 
+fn create_volume_box(_: &Lua, (p, s): (Table, Table)) -> Result<VolumetricSolid> {
+    // Position
+    let px: f32 = p.raw_get(1).unwrap();
+    let py: f32 = p.raw_get(2).unwrap();
+    let pz: f32 = p.raw_get(3).unwrap();
+    // Size
+    let sx: f32 = s.raw_get(1).unwrap();
+    let sy: f32 = s.raw_get(2).unwrap();
+    let sz: f32 = s.raw_get(3).unwrap();
+
+    let volume = Volume::Box(BoxParams {
+        pos: Vector3::new(px, py, pz),
+        size: Vector3::new(sx, sy, sz),
+    });
+    let effect: VolumeEffect = Default::default();
+
+    Ok(VolumetricSolid::new(volume, effect))
+}
+
+fn create_volume_cone(_: &Lua, (p, scale_y, r): (Table, f32, Table)) -> Result<VolumetricSolid> {
+    // Position
+    let px: f32 = p.raw_get(1).unwrap();
+    let py: f32 = p.raw_get(2).unwrap();
+    let pz: f32 = p.raw_get(3).unwrap();
+
+    // Rotations
+    let rx: f32 = r.raw_get(1).unwrap();
+    let ry: f32 = r.raw_get(2).unwrap();
+    let rz: f32 = r.raw_get(3).unwrap();
+
+    let volume = Volume::Cone(ConeParams::new(
+        Vector3::new(px, py, pz),
+        scale_y,
+        rx,
+        ry,
+        rz,
+    ));
+    let effect: VolumeEffect = Default::default();
+
+    Ok(VolumetricSolid::new(volume, effect))
+}
+
 fn render(
     _: &Lua,
-    (node, file_name, width, height, eye, view, up, fov, ambient_light, lights): (
+    (node, file_name, width, height, eye, view, up, fov, ambient_light, lights, volumes): (
         SceneNode,
         String,
         u32,
@@ -152,6 +192,7 @@ fn render(
         f32,
         Table,
         Table,
+        Table,
     ),
 ) -> Result<()> {
     let mut lights_vec: Vec<Light> = Vec::new();
@@ -159,26 +200,29 @@ fn render(
         lights_vec.push(lights.raw_get(i).unwrap());
     }
 
-    let mut volumes: Vec<VolumetricSolid> = Vec::new();
-    if ADD_VOLUMES {
-        volumes.push(VolumetricSolid::new(
-            Volume::Box(BoxParams {
-                pos: Vector3::new(-50f32, 0.0, -50.0),
-                size: Vector3::new(100.0f32, 3f32, 400.0f32),
-            }),
-            VolumeEffect::Fog(Color::new(0.7, 0.7, 0.9)),
-        ));
-        volumes.push(VolumetricSolid::new(
-            Volume::Cone(ConeParams::new(
-                Vector3::new(0.0f32, 10.0, 20.0),
-                1.0,
-                0.0,
-                0.0,
-                180.0,
-            )),
-            VolumeEffect::Light(Color::new(0.5, 0.4, 0.2)),
-        ));
+    let mut volumes_vec: Vec<VolumetricSolid> = Vec::new();
+    for i in 1..=volumes.raw_len() {
+        volumes_vec.push(volumes.raw_get(i).unwrap());
     }
+    //    if ADD_VOLUMES {
+    //        volumes.push(VolumetricSolid::new(
+    //            Volume::Box(BoxParams {
+    //                pos: Vector3::new(-50f32, 0.0, -50.0),
+    //                size: Vector3::new(100.0f32, 3f32, 400.0f32),
+    //            }),
+    //            VolumeEffect::Fog(Color::new(0.7, 0.7, 0.9)),
+    //        ));
+    //        volumes.push(VolumetricSolid::new(
+    //            Volume::Cone(ConeParams::new(
+    //                Vector3::new(0.0f32, 10.0, 20.0),
+    //                1.0,
+    //                0.0,
+    //                0.0,
+    //                180.0,
+    //            )),
+    //            VolumeEffect::Light(Color::new(0.5, 0.4, 0.2)),
+    //        ));
+    //    }
     let raytracer = Raytracer {
         root_node: node,
         eye: Point3::new(
@@ -203,14 +247,21 @@ fn render(
             ambient_light.raw_get(3).unwrap(),
         ),
         lights: lights_vec,
-        volumes,
+        volumes: volumes_vec,
     };
     println!("Rendering {}", file_name);
     raytracer.render(file_name.as_ref(), width, height);
     Ok(())
 }
 
-impl UserData for VolumetricSolid {}
+impl UserData for VolumetricSolid {
+    fn add_methods<'lua, M: UserDataMethods<'lua, Self>>(methods: &mut M) {
+        methods.add_method_mut("set_effect", |_, v_solid, effect: VolumeEffect| {
+            v_solid.effect = effect;
+            Ok(())
+        });
+    }
+}
 
 impl UserData for VolumeEffect {}
 
@@ -291,6 +342,14 @@ pub fn run_lua_script(file_name: &str) {
         ("print", lua.create_function(print_node).unwrap()),
         // Render a scene
         ("render", lua.create_function(render).unwrap()),
+        (
+            "volume_box",
+            lua.create_function(create_volume_box).unwrap(),
+        ),
+        (
+            "volume_cone",
+            lua.create_function(create_volume_cone).unwrap(),
+        ),
     ];
 
     let f_table = lua.create_table_from(core_functions).unwrap();
